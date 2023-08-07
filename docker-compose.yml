@@ -8,6 +8,6 @@ services:
     environment:
       POSTGRES_USER: eshop
       POSTGRES_PASSWORD: eshop1945
-      POSTGRES_DB: nest
+      POSTGRES_DB: mydb
     ports:
       - 5432:5432

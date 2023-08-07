@@ -6,6 +6,9 @@ interface Tokenable {
   [key: string]: string;
 }
 
+const AT_EXPIRED_TIME = '1h';
+const RT_EXPIRED_TIME = '7d';
+
 @Injectable({ scope: Scope.REQUEST })
 export class HelperService {
   hash(value: string): Promise<string> {
@@ -16,7 +19,7 @@ export class HelperService {
   }
   createAcessToken(obj: Tokenable) {
     return jwt.sign(obj, process.env.JWT_AT_SECRET, {
-      expiresIn: process.env.AT_EXPIRED_TIME,
+      expiresIn: AT_EXPIRED_TIME,
     });
   }
   verifyAccessToken(token: string) {
@@ -24,7 +27,7 @@ export class HelperService {
   }
   createRefreshToken(obj: Tokenable) {
     return jwt.sign(obj, process.env.JWT_RT_SECRET, {
-      expiresIn: process.env.RT_EXPIRED_TIME,
+      expiresIn: RT_EXPIRED_TIME,
     });
   }
   verifyRefeshToken(token: string) {
@@ -47,6 +50,9 @@ export class HelperService {
     } catch (error) {
       throw new HttpException('Invalid Token', 400);
     }
+  }
+  decode(token: string): string | jwt.JwtPayload {
+    return jwt.decode(token);
   }
   logger() {
     console.log('ok!');

@@ -1,17 +1,13 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLE } from '@prisma/client';
-import { HelperService } from 'src/helper/helper.service';
+import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JWTPayloadParams } from '../../interface/interfaces';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private helper: HelperService,
-    private prismaService: PrismaService,
-  ) {}
+  constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<ROLE[]>('role', context.getHandler());
@@ -19,18 +15,12 @@ export class AuthGuard implements CanActivate {
       const request = context.switchToHttp().getRequest();
       const accessToken = request.headers?.authorization?.split('Bearer ')[1];
       try {
-        const AccessTokenPayload = this.helper.verifyAccessToken(
-          accessToken,
-        ) as JWTPayloadParams;
-
-        const user = await this.prismaService.user.findUnique({
-          where: { id: AccessTokenPayload.id },
-        });
-        if (!user) return false;
-        if (roles.includes(user.role)) {
-          request.verifiedUser = user;
+        const AccessTokenPayload = jwt.decode(accessToken) as JWTPayloadParams;
+        if (roles.includes(AccessTokenPayload.role)) {
+          request.userAccessToken = accessToken;
           return true;
-        } else return false;
+        }
+        return false;
       } catch (error) {
         return false;
       }

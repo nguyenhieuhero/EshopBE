@@ -2,11 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HelperService } from 'src/helper/helper.service';
 import { Request } from 'express';
-import {
-  SignUpParams,
-  SignInParams,
-  BasicUserInforParams,
-} from '../interface/interfaces';
+import { SignUpParams, SignInParams } from '../interface/interfaces';
 import { JWTPayloadParams } from '../interface/interfaces';
 @Injectable()
 export class AuthService {
@@ -23,7 +19,13 @@ export class AuthService {
     }
     const hashPass = await this.helper.hash(password);
     const user = await this.prismaService.user.create({
-      data: { email, password: hashPass, fullname, address, phone },
+      data: {
+        email,
+        password: hashPass,
+        fullname,
+        address,
+        phone,
+      },
     });
     return { message: 'success' };
   }
@@ -53,22 +55,32 @@ export class AuthService {
     });
     return { accessToken, refreshToken };
   }
-  async refreshToken(
-    { headers }: Request,
-    { id, role, name }: JWTPayloadParams,
-  ) {
-    const oldRefreshToken = headers.cookie?.split('=')[1];
-    if (!oldRefreshToken) {
+  async refreshToken(request: Request) {
+    const oldRefreshToken = request.headers?.cookie?.split('=')[1];
+    const oldAccessToken = request.headers?.authorization?.split('Bearer ')[1];
+    if (!oldRefreshToken || !oldAccessToken) {
       throw new HttpException('Token Missing!!!', 400);
     }
     try {
-      const newRefreshToken = this.helper.refreshToken(oldRefreshToken);
-      const newAccessToken = this.helper.createAcessToken({
-        id,
-        role,
-        name,
-      });
-      return { newAccessToken, newRefreshToken };
+      const refreshTokenPayload = this.helper.verifyRefeshToken(
+        oldRefreshToken,
+      ) as JWTPayloadParams;
+      const accessTokenPayload = this.helper.decode(
+        oldAccessToken,
+      ) as JWTPayloadParams;
+      if (
+        refreshTokenPayload.id === accessTokenPayload.id &&
+        refreshTokenPayload.role === accessTokenPayload.role &&
+        refreshTokenPayload.name === accessTokenPayload.name
+      ) {
+        const newRefreshToken = this.helper.refreshToken(oldRefreshToken);
+        const newAccessToken = this.helper.createAcessToken({
+          id: accessTokenPayload.id,
+          role: accessTokenPayload.role,
+          name: accessTokenPayload.name,
+        });
+        return { newAccessToken, newRefreshToken };
+      }
     } catch (error) {
       throw new HttpException('Invalid Token', 400);
     }

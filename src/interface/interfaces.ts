@@ -1,7 +1,10 @@
+import { UpdateUserDto } from 'src/user/dtos/user.dto';
+import { ROLE } from '@prisma/client';
+
 export interface JWTPayloadParams {
   id: string;
   name: string;
-  role: string;
+  role: ROLE;
   iat: number;
   exp: number;
 }
@@ -17,10 +20,53 @@ export interface SignUpParams extends SignInParams {
   phone: string;
 }
 
+export interface VerifiedUserParams {
+  id: string;
+  email: string;
+  fullname: string;
+  address: string;
+  phone: string;
+  image_url: string;
+  role: ROLE;
+  created_at: Date;
+  modified_at: Date;
+}
+
 export interface BasicUserInforParams {
   email: string;
   fullname: string;
   address: string;
   phone: string;
-  role: string;
+  image_url: string;
+  role: ROLE;
+}
+
+export interface UpdateUserParams {
+  fullname?: string;
+  address?: string;
+  phone?: string;
+  password?: string;
+}
+
+export interface CreateCategoryParams {
+  label: string;
+  description: string;
+  image_url: string;
+}
+
+export interface CreateProductParams {
+  name: string;
+  price: number;
+  description: string;
+  quantity: number;
+  image_url: string;
+  categories: number[];
+}
+
+export interface QueryProductParams {
+  name?: { contain: string };
+  price?: {
+    gte?: number;
+    lte?: number;
+  };
 }

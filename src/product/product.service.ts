@@ -6,6 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 
 const productBasicField = {
+  id: true,
   name: true,
   price: true,
   description: true,
@@ -57,18 +58,25 @@ export class ProductService {
 
   async getProduct(productFilter: QueryProductParams, categoryIds: string) {
     try {
-      const _categoryIds = categoryIds
-        .split(',')
-        .map((categoryId) => Number.parseInt(categoryId));
-      const categoryProducts =
-        await this.prismaService.categoryProduct.findMany({
-          where: { category_id: { in: _categoryIds } },
-          select: { product_id: true },
-        });
-      const productIdsArray = categoryProducts.map((e) => e.product_id);
+      let productIdsArray: string[];
+      if (categoryIds) {
+        const _categoryIds = categoryIds
+          .split(',')
+          .map((categoryId) => Number.parseInt(categoryId));
+        const categoryProducts =
+          await this.prismaService.categoryProduct.findMany({
+            where: { category_id: { in: _categoryIds } },
+            select: { product_id: true },
+          });
+        productIdsArray = categoryProducts.map((e) => e.product_id);
+      }
+
       const products = await this.prismaService.product.findMany({
         select: productBasicField,
-        where: { ...productFilter, id: { in: productIdsArray } },
+        where: {
+          ...productFilter,
+          ...(productIdsArray && { id: { in: productIdsArray } }),
+        },
       });
       return products;
     } catch (error) {

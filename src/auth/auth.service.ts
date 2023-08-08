@@ -25,10 +25,9 @@ export class AuthService {
         fullname,
         address,
         phone,
-        role: email.includes('admin') ? 'ADMIN' : 'BASIC', //for test case
       },
     });
-    return { message: 'success' };
+    return { message: 'Đăng ký thành công', success: true };
   }
   async signin({ email, password }: SignInParams) {
     const user = await this.prismaService.user.findUnique({

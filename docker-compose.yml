@@ -11,13 +11,13 @@ services:
       POSTGRES_DB: mydb
     ports:
       - 5432:5432
-  be:
-    image: nguyenhieuhero/eshopbe
-    restart: always
-    ports:
-      - 3000:3000
-    environment:
-      DATABASE_URL: postgresql://eshop:eshop1945@postgres:5432/mydb?schema=public
-      JWT_AT_SECRET: bWVyaXN1
-      JWT_RT_SECRET: bmd1eWVuaGlldWhlcm8=
-      HASH_SECRET: dXNpcmVt"
+  # be:
+  #   image: nguyenhieuhero/eshopbe
+  #   restart: always
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     DATABASE_URL: postgresql://eshop:eshop1945@postgres:5432/mydb?schema=public
+  #     JWT_AT_SECRET: bWVyaXN1
+  #     JWT_RT_SECRET: bmd1eWVuaGlldWhlcm8=
+  #     HASH_SECRET: dXNpcmVt

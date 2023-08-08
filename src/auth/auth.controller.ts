@@ -24,7 +24,10 @@ export class AuthController {
     return await this.authService.signup(body);
   }
   @Post('/signin')
-  async signin(@Body() body: SignInDto, @Res() res: Response) {
+  async signin(
+    @Body() body: SignInDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const token = await this.authService.signin(body);
     res.set('Authorization', 'Bearer ' + token.accessToken);
     res.cookie('RefreshToken', token.refreshToken, {

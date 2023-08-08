@@ -56,7 +56,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
   async refreshToken(request: Request) {
-    const oldRefreshToken = request.headers?.cookie?.split('=')[1];
+    const oldRefreshToken = request.cookies['RefreshToken'];
     const oldAccessToken = request.headers?.authorization?.split('Bearer ')[1];
     if (!oldRefreshToken || !oldAccessToken) {
       throw new HttpException('Token Missing!!!', 400);

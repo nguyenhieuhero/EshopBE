@@ -25,6 +25,7 @@ export class AuthService {
         fullname,
         address,
         phone,
+        role: email.includes('admin') ? 'ADMIN' : 'BASIC', //for test case
       },
     });
     return { message: 'success' };

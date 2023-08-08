@@ -37,11 +37,10 @@ export class ProductController {
             ...(maxPrice && { lte: parseFloat(maxPrice) }),
           }
         : undefined;
-    const filter = {
+    const productFilter = {
       ...(price && { price }),
       ...(_name && { name: { contains: _name } }),
     };
-    console.log(filter);
-    // return this.productService.getProduct(filter);
+    return this.productService.getProduct(productFilter, categoryIds);
   }
 }

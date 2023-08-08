@@ -55,9 +55,24 @@ export class ProductService {
     }
   }
 
-  async getProduct(filter: QueryProductParams) {
-    return await this.prismaService.product.findMany({
-      select: productBasicField,
-    });
+  async getProduct(productFilter: QueryProductParams, categoryIds: string) {
+    try {
+      const _categoryIds = categoryIds
+        .split(',')
+        .map((categoryId) => Number.parseInt(categoryId));
+      const categoryProducts =
+        await this.prismaService.categoryProduct.findMany({
+          where: { category_id: { in: _categoryIds } },
+          select: { product_id: true },
+        });
+      const productIdsArray = categoryProducts.map((e) => e.product_id);
+      const products = await this.prismaService.product.findMany({
+        select: productBasicField,
+        where: { ...productFilter, id: { in: productIdsArray } },
+      });
+      return products;
+    } catch (error) {
+      return [];
+    }
   }
 }

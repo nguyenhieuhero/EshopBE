@@ -64,7 +64,7 @@ export interface CreateProductParams {
 }
 
 export interface QueryProductParams {
-  name?: { contain: string };
+  name?: { contains?: string };
   price?: {
     gte?: number;
     lte?: number;

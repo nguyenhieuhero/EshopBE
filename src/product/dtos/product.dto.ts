@@ -33,11 +33,6 @@ export class CreateProductDto {
   @IsNotEmpty()
   quantity: number;
 
-  @IsString()
-  @IsNotEmpty()
-  image_url: string;
-
-  @IsArray()
-  @IsNotEmpty()
+  @IsNumber({}, { each: true })
   categories: number[];
 }

@@ -1,4 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
+import { firebasePath } from 'src/enum/enum';
+import { GoogleCloudService } from 'src/googlecloud/googlecloud.service';
 import {
   CreateProductParams,
   QueryProductParams,
@@ -16,28 +18,31 @@ const productBasicField = {
 
 @Injectable()
 export class ProductService {
-  constructor(private prismaService: PrismaService) {}
-  async createProduct({
-    name,
-    price,
-    description,
-    quantity,
-    image_url,
-    categories,
-  }: CreateProductParams) {
+  constructor(
+    private prismaService: PrismaService,
+    private googleCloundService: GoogleCloudService,
+  ) {}
+  async createProduct(
+    { name, price, description, quantity, categories }: CreateProductParams,
+    productImage: Express.Multer.File,
+  ) {
     const isExist = await this.prismaService.product.findUnique({
       where: { name },
     });
     if (isExist) {
       throw new HttpException('Product name exist', 400);
     }
+    const url = await this.googleCloundService.upload(
+      productImage,
+      firebasePath.PRODUCT,
+    );
     const product = await this.prismaService.product.create({
       data: {
         name,
         price,
         description,
         quantity,
-        image_url,
+        image_url: url,
       },
     });
     //Check if category id exist

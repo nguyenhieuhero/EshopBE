@@ -14,4 +14,9 @@ export class CategoryService {
     await this.prismaService.category.create({ data: category });
     return { message: 'Create category success!' };
   }
+  async getAllCategories() {
+    return await this.prismaService.category.findMany({
+      select: { id: true, label: true, description: true, image_url: true },
+    });
+  }
 }

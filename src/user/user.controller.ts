@@ -1,11 +1,16 @@
 import {
   Body,
   Controller,
+  FileTypeValidator,
   Get,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   ParseUUIDPipe,
-  Post,
+  Patch,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
@@ -16,6 +21,7 @@ import {
 } from 'src/interface/interfaces';
 import { UserService } from './user.service';
 import { BasicUserInforDto, UpdateUserDto } from './dtos/user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
@@ -34,11 +40,21 @@ export class UserController {
   }
   @Roles('BASIC', 'ADMIN')
   @UseGuards(AuthGuard)
-  @Post('/')
+  @Patch('/')
+  @UseInterceptors(FileInterceptor('avatar'))
   updateUserInfor(
     @Body() newUserInfor: UpdateUserDto,
     @VerifiedUser() user: BasicUserInforDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 300000 }), //3MB
+          new FileTypeValidator({ fileType: 'image/jpeg' }),
+        ],
+      }),
+    )
+    avatar: Express.Multer.File,
   ) {
-    return this.userService.updateUserInfor(user, newUserInfor);
+    return this.userService.updateUserInfor(user, newUserInfor, avatar);
   }
 }

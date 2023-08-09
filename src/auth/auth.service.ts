@@ -80,9 +80,11 @@ export class AuthService {
           name: accessTokenPayload.name,
         });
         return { newAccessToken, newRefreshToken };
+      } else {
+        throw new HttpException('Invalid Token', 401);
       }
     } catch (error) {
-      throw new HttpException('Invalid Token', 400);
+      throw new HttpException('Invalid Token', 401);
     }
   }
 }

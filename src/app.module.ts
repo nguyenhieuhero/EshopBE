@@ -13,7 +13,14 @@ import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, HelperModule, UserModule, ProductModule, CategoryModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    HelperModule,
+    UserModule,
+    ProductModule,
+    CategoryModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,

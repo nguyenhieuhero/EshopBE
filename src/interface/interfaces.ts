@@ -59,7 +59,6 @@ export interface CreateProductParams {
   price: number;
   description: string;
   quantity: number;
-  image_url: string;
   categories: number[];
 }
 

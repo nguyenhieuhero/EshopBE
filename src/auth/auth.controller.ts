@@ -40,12 +40,15 @@ export class AuthController {
   @Post('/refreshtoken')
   async getToken(@Req() req: Request, @Res() res: Response) {
     const newToken = await this.authService.refreshToken(req);
-    res.set('Authorization', 'Bearer ' + newToken.newAccessToken);
-    res.cookie('RefreshToken', newToken.newRefreshToken, {
-      httpOnly: true,
-    });
-    res.send({
-      success: true,
-    });
+    if (newToken) {
+      res.set('Authorization', 'Bearer ' + newToken.newAccessToken);
+      res.cookie('RefreshToken', newToken.newRefreshToken, {
+        httpOnly: true,
+      });
+      res.send({
+        success: true,
+      });
+    }
+    res.send({ success: false });
   }
 }

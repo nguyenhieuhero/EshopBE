@@ -30,7 +30,7 @@ export class UserInterceptor implements NestInterceptor {
           request.verifiedUser = user;
         }
       } catch (error) {
-        throw new HttpException('Access Token expired!', 400);
+        throw new HttpException('Access Token expired!', 401);
       }
     }
     return handler.handle();

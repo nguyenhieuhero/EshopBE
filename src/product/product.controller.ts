@@ -50,7 +50,9 @@ export class ProductController {
   @UseInterceptors(FileInterceptor('productImage'))
   @Patch('/:id')
   updateProduct(
-    @GetProduct() productInformation: CreateProductDto,
+    @Param('id', ParseUUIDPipe) id: string,
+    @GetProduct()
+    productInformation: CreateProductDto,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -60,7 +62,14 @@ export class ProductController {
       }),
     )
     productImage: Express.Multer.File,
-  ) {}
+  ) {
+    console.log('hehe');
+    return this.productService.updateProductById(
+      id,
+      productInformation,
+      productImage,
+    );
+  }
 
   @Get('/')
   getAllProduct(
@@ -81,10 +90,5 @@ export class ProductController {
       ...(_name && { name: { contains: _name } }),
     };
     return this.productService.getProduct(productFilter, categoryIds);
-  }
-
-  @Get('/:id')
-  getProductById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.productService.getProductById(id);
   }
 }

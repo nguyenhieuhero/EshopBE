@@ -30,6 +30,7 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Get('/')
   getUserInfor(@VerifiedUser() user: BasicUserInforDto) {
+    console.log(user);
     return new BasicUserInforDto(user);
   }
   @Roles('ADMIN')

@@ -88,14 +88,23 @@ export class ProductService {
       return [];
     }
   }
+
   async getProductById(id: string) {
     const product = await this.prismaService.product.findUnique({
       where: { id },
       select: productBasicField,
     });
     if (!product) {
-      return null;
+      return new HttpException('Not Found', 404);
     }
     return product;
+  }
+
+  async updateProductById(
+    id: string,
+    productInformation: CreateProductParams,
+    productImage: Express.Multer.File,
+  ) {
+    return { mess: 'inpur success' };
   }
 }

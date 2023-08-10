@@ -11,10 +11,6 @@ import {
 import { Response, Request } from 'express';
 import { SignInDto, SignUpDto } from './dtos/auth.dto';
 import { AuthService } from './auth.service';
-import { Roles } from './decorator/roles.decorator';
-import { VerifiedUser } from 'src/user/decorator/user.decorator';
-import { AuthGuard } from './guard/auth.guard';
-import { JWTPayloadParams } from '../interface/interfaces';
 
 @Controller('auth')
 export class AuthController {
@@ -34,6 +30,7 @@ export class AuthController {
       httpOnly: true,
     });
     res.send({
+      success: true,
       AccessToken: token.accessToken,
     });
   }
@@ -41,12 +38,13 @@ export class AuthController {
   async getToken(@Req() req: Request, @Res() res: Response) {
     const newToken = await this.authService.refreshToken(req);
     if (newToken) {
-      res.set('Authorization', 'Bearer ' + newToken.newAccessToken);
+      res.header('Authorization', 'Bearer ' + newToken.newAccessToken);
       res.cookie('RefreshToken', newToken.newRefreshToken, {
         httpOnly: true,
       });
       res.send({
         success: true,
+        AccessToken: newToken.newAccessToken,
       });
     }
     res.send({ success: false });

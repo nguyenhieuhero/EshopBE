@@ -4,21 +4,42 @@ import {
   IsString,
   Matches,
   IsOptional,
+  IsEnum,
 } from 'class-validator';
 import { Exclude, Expose } from 'class-transformer';
 
 import { ROLE } from '@prisma/client';
 export class BasicUserInforDto {
-  @Exclude()
+  @IsString()
+  @IsNotEmpty()
   id: string;
+
+  @IsString()
+  @IsNotEmpty()
   email: string;
+
   @Exclude()
   password: string;
+
+  @IsString()
   fullname: string;
+
+  @IsString()
+  @IsNotEmpty()
   address: string;
+
+  @IsString()
+  @IsNotEmpty()
   phone: string;
+
+  @IsEnum(ROLE)
+  @IsNotEmpty()
   role: ROLE;
+
+  @IsString()
+  @IsNotEmpty()
   image_url: string;
+
   @Exclude()
   created_at: Date;
   @Exclude()

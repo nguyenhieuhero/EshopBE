@@ -4,11 +4,15 @@ import { HelperService } from 'src/helper/helper.service';
 import { Request } from 'express';
 import { SignUpParams, SignInParams } from '../interface/interfaces';
 import { JWTPayloadParams } from '../interface/interfaces';
+import { GoogleCloudService } from 'src/googlecloud/googlecloud.service';
+import * as fs from 'fs';
+import { firebasePath } from 'src/enum/enum';
 @Injectable()
 export class AuthService {
   constructor(
     private prismaService: PrismaService,
     private helper: HelperService,
+    private googleCloudService: GoogleCloudService,
   ) {}
   async signup({ email, password, fullname, address, phone }: SignUpParams) {
     const isExist = await this.prismaService.user.findFirst({
@@ -17,6 +21,11 @@ export class AuthService {
     if (isExist) {
       throw new HttpException('Email or phone already existed!!!', 400);
     }
+    const defaulImg = fs.readFileSync('assets//Male_Avatar.jpg');
+    const url = await this.googleCloudService.upload(
+      defaulImg,
+      firebasePath.USER,
+    );
     const hashPass = await this.helper.hash(password);
     const user = await this.prismaService.user.create({
       data: {
@@ -25,6 +34,7 @@ export class AuthService {
         fullname,
         address,
         phone,
+        image_url: url,
       },
     });
     return { message: 'Đăng ký thành công', success: true };

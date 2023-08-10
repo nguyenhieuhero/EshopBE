@@ -22,10 +22,23 @@ export class ProductService {
     private prismaService: PrismaService,
     private googleCloundService: GoogleCloudService,
   ) {}
+  async categoryIdValidate(target: number[]) {
+    const categoryIds = await this.prismaService.category
+      .findMany({
+        select: { id: true },
+      })
+      .then((validCategories) => validCategories.map((field) => field.id));
+    if (target.every((id) => categoryIds.includes(id))) {
+      return target;
+    }
+    throw new HttpException('Invalid Category!', 400);
+  }
+
   async createProduct(
     { name, price, description, quantity, categories }: CreateProductParams,
     productImage: Express.Multer.File,
   ) {
+    const validCategoryIds = await this.categoryIdValidate(categories);
     const isExist = await this.prismaService.product.findUnique({
       where: { name },
     });
@@ -33,7 +46,7 @@ export class ProductService {
       throw new HttpException('Product name exist', 400);
     }
     const url = await this.googleCloundService.upload(
-      productImage,
+      productImage.buffer,
       firebasePath.PRODUCT,
     );
     const product = await this.prismaService.product.create({
@@ -45,14 +58,10 @@ export class ProductService {
         image_url: url,
       },
     });
-    //Check if category id exist
-    const _categories = await this.prismaService.category.findMany({
-      where: { id: { in: categories } },
-    });
     try {
       await this.prismaService.categoryProduct.createMany({
-        data: _categories.map((category) => {
-          return { product_id: product.id, category_id: category.id };
+        data: validCategoryIds.map((categoryId) => {
+          return { product_id: product.id, category_id: categoryId };
         }),
       });
       return { success: true };
@@ -102,9 +111,52 @@ export class ProductService {
 
   async updateProductById(
     id: string,
-    productInformation: CreateProductParams,
-    productImage: Express.Multer.File,
+    productInformation: Partial<CreateProductParams>,
+    productImage: Buffer,
   ) {
-    return { mess: 'inpur success' };
+    const product = await this.prismaService.product.findUnique({
+      where: { id },
+    });
+    if (!product) {
+      throw new HttpException('Not Found!', 404);
+    }
+    if (productInformation.categories) {
+      const validCategoryIds = await this.categoryIdValidate(
+        productInformation.categories,
+      );
+      await this.prismaService.categoryProduct.deleteMany({
+        where: { product_id: product.id },
+      });
+      await this.prismaService.categoryProduct.createMany({
+        data: validCategoryIds.map((categoryId) => {
+          return { product_id: product.id, category_id: categoryId };
+        }),
+      });
+    }
+    await this.prismaService.product.update({
+      where: { id },
+      data: {
+        ...(productInformation.name && { name: productInformation.name }),
+        ...(productInformation.price && { price: productInformation.price }),
+        ...(productInformation.description && {
+          description: productInformation.description,
+        }),
+        ...(productInformation.quantity && {
+          quantity: productInformation.quantity,
+        }),
+        ...(productImage && {
+          image_url: await this.googleCloundService.upload(
+            productImage,
+            firebasePath.PRODUCT,
+          ),
+        }),
+      },
+    });
+    return { message: 'Cập nhật thành công!' };
   }
 }
+// name,
+//         price,
+//         description,
+//         quantity,
+//         image_url: url,

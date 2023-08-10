@@ -20,12 +20,8 @@ export class AuthController {
     return await this.authService.signup(body);
   }
   @Post('/signin')
-  async signin(
-    @Body() body: SignInDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async signin(@Body() body: SignInDto, @Res() res: Response) {
     const token = await this.authService.signin(body);
-    res.header('Authorization', 'Bearer ' + token.accessToken);
     res.cookie('RefreshToken', token.refreshToken, {
       httpOnly: true,
     });
@@ -38,7 +34,6 @@ export class AuthController {
   async getToken(@Req() req: Request, @Res() res: Response) {
     const newToken = await this.authService.refreshToken(req);
     if (newToken) {
-      res.header('Authorization', 'Bearer ' + newToken.newAccessToken);
       res.cookie('RefreshToken', newToken.newRefreshToken, {
         httpOnly: true,
       });

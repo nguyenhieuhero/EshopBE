@@ -35,7 +35,7 @@ export class UserService {
   async updateUserInfor(
     user: VerifiedUserParams,
     { fullname, address, phone, password }: UpdateUserParams,
-    avatar: Express.Multer.File,
+    avatar: Buffer,
   ) {
     if (phone && phone !== user.phone) {
       const isPhoneExist = await this.prismaService.user.findUnique({
@@ -45,6 +45,7 @@ export class UserService {
         throw new HttpException('Phone number existed', 400);
       }
     }
+    await this.googleCloudService.delete(user.image_url);
     const url = await this.googleCloudService.upload(avatar, firebasePath.USER);
     await this.prismaService.user.update({
       where: { id: user.id },
@@ -56,6 +57,7 @@ export class UserService {
         ...(avatar && { image_url: url }),
       },
     });
+
     return { success: true };
   }
 }

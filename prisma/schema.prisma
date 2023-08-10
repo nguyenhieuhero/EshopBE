@@ -17,7 +17,7 @@ model User {
   role         ROLE     @default(BASIC)
   created_at   DateTime @default(now())
   modified_at  DateTime @updatedAt
-  image_url    String   @default("user_img_url")
+  image_url    String
   OrderDetails Order[]
 }
 

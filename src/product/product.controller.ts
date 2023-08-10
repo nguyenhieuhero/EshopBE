@@ -35,7 +35,7 @@ export class ProductController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 900000 }), //9MB
+          new MaxFileSizeValidator({ maxSize: 600000 }), //6MB
           new FileTypeValidator({ fileType: 'image/jpeg' }),
         ],
       }),
@@ -52,22 +52,22 @@ export class ProductController {
   updateProduct(
     @Param('id', ParseUUIDPipe) id: string,
     @GetProduct()
-    productInformation: CreateProductDto,
+    productInformation: Partial<CreateProductDto>,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 900000 }), //9MB
+          new MaxFileSizeValidator({ maxSize: 600000 }), //6MB
           new FileTypeValidator({ fileType: 'image/jpeg' }),
         ],
+        fileIsRequired: false,
       }),
     )
     productImage: Express.Multer.File,
   ) {
-    console.log('hehe');
     return this.productService.updateProductById(
       id,
       productInformation,
-      productImage,
+      productImage.buffer,
     );
   }
 

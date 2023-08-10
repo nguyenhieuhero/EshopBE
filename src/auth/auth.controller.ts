@@ -29,12 +29,12 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const token = await this.authService.signin(body);
-    res.set('Authorization', 'Bearer ' + token.accessToken);
+    res.header('Authorization', 'Bearer ' + token.accessToken);
     res.cookie('RefreshToken', token.refreshToken, {
       httpOnly: true,
     });
     res.send({
-      success: true,
+      AccessToken: token.accessToken,
     });
   }
   @Post('/refreshtoken')

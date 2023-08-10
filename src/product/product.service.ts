@@ -88,4 +88,14 @@ export class ProductService {
       return [];
     }
   }
+  async getProductById(id: string) {
+    const product = await this.prismaService.product.findUnique({
+      where: { id },
+      select: productBasicField,
+    });
+    if (!product) {
+      return null;
+    }
+    return product;
+  }
 }

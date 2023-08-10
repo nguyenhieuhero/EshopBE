@@ -13,6 +13,8 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Param,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { Roles } from 'src/auth/decorator/roles.decorator';
@@ -79,5 +81,10 @@ export class ProductController {
       ...(_name && { name: { contains: _name } }),
     };
     return this.productService.getProduct(productFilter, categoryIds);
+  }
+
+  @Get('/:id')
+  getProductById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.productService.getProductById(id);
   }
 }

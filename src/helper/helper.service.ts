@@ -6,8 +6,8 @@ interface Tokenable {
   [key: string]: string;
 }
 
-const AT_EXPIRED_TIME = '1h';
-const RT_EXPIRED_TIME = '7d';
+const AT_EXPIRED_SC = 3600; //1h
+const RT_EXPIRED_SC = 604800; //7d
 
 @Injectable({ scope: Scope.REQUEST })
 export class HelperService {
@@ -19,16 +19,20 @@ export class HelperService {
   }
   createAcessToken(obj: Tokenable) {
     return jwt.sign(obj, process.env.JWT_AT_SECRET, {
-      expiresIn: AT_EXPIRED_TIME,
+      expiresIn: AT_EXPIRED_SC,
     });
   }
   verifyAccessToken(token: string) {
     return jwt.verify(token, process.env.JWT_AT_SECRET);
   }
   createRefreshToken(obj: Tokenable) {
-    return jwt.sign(obj, process.env.JWT_RT_SECRET, {
-      expiresIn: RT_EXPIRED_TIME,
+    const refreshToken = jwt.sign(obj, process.env.JWT_RT_SECRET, {
+      expiresIn: RT_EXPIRED_SC,
     });
+    return {
+      refreshToken,
+      expiredDate: new Date(Date.now() + RT_EXPIRED_SC * 1000),
+    };
   }
   verifyRefeshToken(token: string) {
     return jwt.verify(token, process.env.JWT_RT_SECRET);
@@ -38,15 +42,17 @@ export class HelperService {
       const { id, role, name, exp } = this.verifyRefeshToken(
         token,
       ) as JWTPayloadParams;
-      const currentTime = new Date().getTime();
-      const refreshToken = jwt.sign(
+      const currentTime = Math.floor(Date.now() / 1000);
+      const expiredTime = exp - currentTime;
+      const expiredDate = new Date(exp * 1000);
+      const newRefreshToken = jwt.sign(
         { id, role, name },
         process.env.JWT_RT_SECRET,
         {
-          expiresIn: `${exp * 1000 - currentTime}ms`,
+          expiresIn: expiredTime,
         },
       );
-      return refreshToken;
+      return { newRefreshToken, expiredDate };
     } catch (error) {
       throw new HttpException('Invalid Token', 400);
     }

@@ -21,7 +21,7 @@ import { Roles } from 'src/auth/decorator/roles.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CreateProductDto } from './dtos/product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { GetProduct } from './decorator/product.decorator';
+import { GetProductInformation } from './decorator/product.decorator';
 
 @Controller('product')
 export class ProductController {
@@ -31,7 +31,7 @@ export class ProductController {
   @UseInterceptors(FileInterceptor('productImage'))
   @Post('/')
   createProduct(
-    @GetProduct() productInformation: CreateProductDto,
+    @GetProductInformation() productInformation: CreateProductDto,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -51,7 +51,7 @@ export class ProductController {
   @Patch('/:id')
   updateProduct(
     @Param('id', ParseUUIDPipe) id: string,
-    @GetProduct()
+    @GetProductInformation()
     productInformation: Partial<CreateProductDto>,
     @UploadedFile(
       new ParseFilePipe({

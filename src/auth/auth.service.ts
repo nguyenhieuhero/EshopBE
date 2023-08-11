@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HelperService } from 'src/helper/helper.service';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { SignUpParams, SignInParams } from '../interface/interfaces';
 import { JWTPayloadParams } from '../interface/interfaces';
 import { GoogleCloudService } from 'src/googlecloud/googlecloud.service';
@@ -39,33 +39,41 @@ export class AuthService {
     });
     return { message: 'Đăng ký thành công', success: true };
   }
-  async signin({ email, password }: SignInParams) {
+  async signin({ email, password }: SignInParams, response: Response) {
     const user = await this.prismaService.user.findUnique({
       where: { email },
     });
     if (!user) {
-      throw new HttpException('Not Found!', 400);
+      throw new HttpException('Invalid email or password', 400);
     }
     const isValidPassword = await this.helper.hashCompare(
       password,
       user.password,
     );
     if (!isValidPassword) {
-      throw new HttpException('Not Found!', 400);
+      throw new HttpException('Invalid email or password', 400);
     }
     const accessToken = this.helper.createAcessToken({
       id: user.id,
       role: user.role,
       name: user.fullname,
     });
-    const refreshToken = this.helper.createRefreshToken({
+    const { refreshToken, expiredDate } = this.helper.createRefreshToken({
       id: user.id,
       role: user.role,
       name: user.fullname,
     });
-    return { accessToken, refreshToken };
+
+    response.cookie('RefreshToken', refreshToken, {
+      httpOnly: true,
+      expires: expiredDate,
+    });
+    response.send({
+      success: true,
+      AccessToken: accessToken,
+    });
   }
-  async refreshToken(request: Request) {
+  async refreshToken(request: Request, response: Response) {
     const oldRefreshToken = request.cookies['RefreshToken'];
     const oldAccessToken = request.headers?.authorization?.split('Bearer ')[1];
     if (!oldRefreshToken || !oldAccessToken) {
@@ -83,13 +91,21 @@ export class AuthService {
         refreshTokenPayload.role === accessTokenPayload.role &&
         refreshTokenPayload.name === accessTokenPayload.name
       ) {
-        const newRefreshToken = this.helper.refreshToken(oldRefreshToken);
+        const { newRefreshToken, expiredDate } =
+          this.helper.refreshToken(oldRefreshToken);
         const newAccessToken = this.helper.createAcessToken({
           id: accessTokenPayload.id,
           role: accessTokenPayload.role,
           name: accessTokenPayload.name,
         });
-        return { newAccessToken, newRefreshToken };
+        response.cookie('RefreshToken', newRefreshToken, {
+          httpOnly: true,
+          expires: expiredDate,
+        });
+        response.send({
+          success: true,
+          AccessToken: newAccessToken,
+        });
       } else {
         throw new HttpException('Invalid Token', 401);
       }
@@ -98,3 +114,14 @@ export class AuthService {
     }
   }
 }
+// if (newToken) {
+//       res.cookie('RefreshToken', newToken.newRefreshToken, {
+//         httpOnly: true,
+//       });
+//       res.send({
+//         success: true,
+//         AccessToken: newToken.newAccessToken,
+//       });
+//     }
+//     res.send({ success: false });
+//   }

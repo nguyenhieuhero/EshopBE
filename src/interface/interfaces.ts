@@ -51,7 +51,6 @@ export interface UpdateUserParams {
 export interface CreateCategoryParams {
   label: string;
   description: string;
-  image_url: string;
 }
 
 export interface CreateProductParams {

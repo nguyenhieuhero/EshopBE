@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Req,
-  UseGuards,
-  Res,
-  Get,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Controller, Post, Body, Req, Res } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { SignInDto, SignUpDto } from './dtos/auth.dto';
 import { AuthService } from './auth.service';
@@ -21,27 +12,10 @@ export class AuthController {
   }
   @Post('/signin')
   async signin(@Body() body: SignInDto, @Res() res: Response) {
-    const token = await this.authService.signin(body);
-    res.cookie('RefreshToken', token.refreshToken, {
-      httpOnly: true,
-    });
-    res.send({
-      success: true,
-      AccessToken: token.accessToken,
-    });
+    return this.authService.signin(body, res);
   }
   @Post('/refreshtoken')
   async getToken(@Req() req: Request, @Res() res: Response) {
-    const newToken = await this.authService.refreshToken(req);
-    if (newToken) {
-      res.cookie('RefreshToken', newToken.newRefreshToken, {
-        httpOnly: true,
-      });
-      res.send({
-        success: true,
-        AccessToken: newToken.newAccessToken,
-      });
-    }
-    res.send({ success: false });
+    return this.authService.refreshToken(req, res);
   }
 }

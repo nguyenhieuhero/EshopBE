@@ -20,7 +20,7 @@ const productBasicField = {
 export class ProductService {
   constructor(
     private prismaService: PrismaService,
-    private googleCloundService: GoogleCloudService,
+    private googleCloudService: GoogleCloudService,
   ) {}
   async categoryIdValidate(target: number[]) {
     const categoryIds = await this.prismaService.category
@@ -45,7 +45,7 @@ export class ProductService {
     if (isExist) {
       throw new HttpException('Product name exist', 400);
     }
-    const url = await this.googleCloundService.upload(
+    const url = await this.googleCloudService.upload(
       productImage.buffer,
       firebasePath.PRODUCT,
     );
@@ -77,9 +77,10 @@ export class ProductService {
         const _categoryIds = categoryIds
           .split(',')
           .map((categoryId) => Number.parseInt(categoryId));
+        const validCategoryIds = await this.categoryIdValidate(_categoryIds);
         const categoryProducts =
           await this.prismaService.categoryProduct.findMany({
-            where: { category_id: { in: _categoryIds } },
+            where: { category_id: { in: validCategoryIds } },
             select: { product_id: true },
           });
         productIdsArray = categoryProducts.map((e) => e.product_id);
@@ -133,6 +134,9 @@ export class ProductService {
         }),
       });
     }
+    if (productImage) {
+      await this.googleCloudService.delete(product.image_url);
+    }
     await this.prismaService.product.update({
       where: { id },
       data: {
@@ -145,7 +149,7 @@ export class ProductService {
           quantity: productInformation.quantity,
         }),
         ...(productImage && {
-          image_url: await this.googleCloundService.upload(
+          image_url: await this.googleCloudService.upload(
             productImage,
             firebasePath.PRODUCT,
           ),
@@ -155,8 +159,3 @@ export class ProductService {
     return { message: 'Cập nhật thành công!' };
   }
 }
-// name,
-//         price,
-//         description,
-//         quantity,
-//         image_url: url,

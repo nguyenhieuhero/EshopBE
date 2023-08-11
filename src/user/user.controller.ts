@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
-import { VerifiedUser } from './decorator/user.decorator';
+import { VerifiedUser, GetUserInformation } from './decorator/user.decorator';
 import {
   BasicUserInforParams,
   JWTPayloadParams,
@@ -30,7 +30,6 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Get('/')
   getUserInfor(@VerifiedUser() user: BasicUserInforDto) {
-    console.log(user);
     return new BasicUserInforDto(user);
   }
   @Roles('ADMIN')
@@ -42,9 +41,9 @@ export class UserController {
   @Roles('BASIC', 'ADMIN')
   @UseGuards(AuthGuard)
   @Patch('/')
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(FileInterceptor('userImage'))
   updateUserInfor(
-    @Body() newUserInfor: UpdateUserDto,
+    @GetUserInformation() newUserInfor: UpdateUserDto,
     @VerifiedUser() user: BasicUserInforDto,
     @UploadedFile(
       new ParseFilePipe({

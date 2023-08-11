@@ -26,18 +26,18 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
+  @Get('/')
+  getAll() {
+    return this.userService.getAll();
+  }
   @Roles('BASIC', 'ADMIN')
   @UseGuards(AuthGuard)
-  @Get('/')
+  @Get('/me')
   getUserInfor(@VerifiedUser() user: BasicUserInforDto) {
     return new BasicUserInforDto(user);
   }
   @Roles('BASIC', 'ADMIN')
   @UseGuards(AuthGuard)
-  @Get('/all')
-  getAll() {
-    return this.userService.getAll();
-  }
   @Roles('ADMIN')
   @UseGuards(AuthGuard)
   @Get('/:id')

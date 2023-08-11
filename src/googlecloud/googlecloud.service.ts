@@ -24,6 +24,8 @@ export class GoogleCloudService {
   async delete(url: string) {
     const storage = getStorage();
     const storageRef = ref(storage, url);
-    await deleteObject(storageRef);
+    deleteObject(storageRef)
+      .then(() => console.log('Xóa ảnh thành công!'))
+      .catch((err) => console.log(err));
   }
 }

@@ -42,8 +42,14 @@ export class CategoryService {
     if (!category) {
       throw new HttpException('Not Found!', 404);
     }
-    if (categoryImage) {
-      await this.googleCloudService.delete(category.image_url);
+    //check unique label
+    if (categoryInformation.label) {
+      const isLabelExist = await this.prismaService.category.findUnique({
+        where: { label: categoryInformation.label },
+      });
+      if (isLabelExist && isLabelExist.id !== category.id) {
+        throw new HttpException('Label already Exist', 400);
+      }
     }
     await this.prismaService.category.update({
       where: { id },
@@ -60,6 +66,9 @@ export class CategoryService {
         }),
       },
     });
-    return { message: 'Cập nhật thành công!' };
+    if (categoryImage) {
+      await this.googleCloudService.delete(category.image_url);
+    }
+    return { message: 'Update successfully!' };
   }
 }

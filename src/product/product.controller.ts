@@ -91,4 +91,9 @@ export class ProductController {
     };
     return this.productService.getProduct(productFilter, categoryIds);
   }
+
+  @Get('/:id')
+  getProductById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.productService.getProductById(id);
+  }
 }

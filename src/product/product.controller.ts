@@ -67,7 +67,7 @@ export class ProductController {
     return this.productService.updateProductById(
       id,
       productInformation,
-      productImage.buffer,
+      productImage && productImage.buffer,
     );
   }
 

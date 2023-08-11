@@ -46,7 +46,6 @@ export class UserService {
       }
     }
     await this.googleCloudService.delete(user.image_url);
-    const url = await this.googleCloudService.upload(avatar, firebasePath.USER);
     await this.prismaService.user.update({
       where: { id: user.id },
       data: {
@@ -54,7 +53,12 @@ export class UserService {
         ...(address && { address }),
         ...(phone && { phone }),
         ...(password && { password: await this.helper.hash(password) }),
-        ...(avatar && { image_url: url }),
+        ...(avatar && {
+          image_url: await this.googleCloudService.upload(
+            avatar,
+            firebasePath.USER,
+          ),
+        }),
       },
     });
 

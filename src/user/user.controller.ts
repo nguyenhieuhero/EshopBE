@@ -56,6 +56,10 @@ export class UserController {
     )
     avatar: Express.Multer.File,
   ) {
-    return this.userService.updateUserInfor(user, newUserInfor, avatar.buffer);
+    return this.userService.updateUserInfor(
+      user,
+      newUserInfor,
+      avatar && avatar.buffer,
+    );
   }
 }

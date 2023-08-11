@@ -67,7 +67,7 @@ export class CategoryController {
     return this.categoryService.updateCategoryById(
       id,
       categoryInformation,
-      categoryImage.buffer,
+      categoryImage && categoryImage.buffer,
     );
   }
 }

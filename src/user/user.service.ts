@@ -64,4 +64,7 @@ export class UserService {
 
     return { success: true };
   }
+  async getAll() {
+    return await this.prismaService.user.findMany({ select: userBasicField });
+  }
 }

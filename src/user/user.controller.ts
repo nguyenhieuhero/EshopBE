@@ -32,6 +32,12 @@ export class UserController {
   getUserInfor(@VerifiedUser() user: BasicUserInforDto) {
     return new BasicUserInforDto(user);
   }
+  @Roles('BASIC', 'ADMIN')
+  @UseGuards(AuthGuard)
+  @Get('/all')
+  getAll() {
+    return this.userService.getAll();
+  }
   @Roles('ADMIN')
   @UseGuards(AuthGuard)
   @Get('/:id')

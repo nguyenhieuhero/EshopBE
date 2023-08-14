@@ -1,4 +1,4 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { GoogleCloudService } from 'src/googlecloud/googlecloud.service';
 import { HelperService } from 'src/helper/helper.service';
 import { UpdateUserParams, VerifiedUserParams } from 'src/interface/interfaces';
@@ -28,7 +28,7 @@ export class UserService {
       select: userBasicField,
     });
     if (!user) {
-      throw new NotFoundException();
+      return { success: false, metada: { message: 'Not Found!' } };
     }
     return user;
   }
@@ -42,11 +42,11 @@ export class UserService {
         where: { phone },
       });
       if (isPhoneExist) {
-        throw new HttpException('Phone number existed', 400);
+        return { success: false, metada: { message: 'Phone number existed' } };
       }
     }
     await this.googleCloudService.delete(user.image_url);
-    await this.prismaService.user.update({
+    const _user = await this.prismaService.user.update({
       where: { id: user.id },
       data: {
         ...(fullname && { fullname }),
@@ -60,11 +60,15 @@ export class UserService {
           ),
         }),
       },
+      select: userBasicField,
     });
 
-    return { success: true };
+    return { success: true, data: _user };
   }
   async getAll() {
-    return await this.prismaService.user.findMany({ select: userBasicField });
+    const users = await this.prismaService.user.findMany({
+      select: userBasicField,
+    });
+    return { success: true, data: users };
   }
 }

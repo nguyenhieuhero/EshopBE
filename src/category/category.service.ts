@@ -3,6 +3,13 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCategoryParams } from 'src/interface/interfaces';
 import { GoogleCloudService } from 'src/googlecloud/googlecloud.service';
 import { firebasePath } from 'src/enum/enum';
+
+const basicCategoryField = {
+  id: true,
+  label: true,
+  description: true,
+  image_url: true,
+};
 @Injectable()
 export class CategoryService {
   constructor(
@@ -14,7 +21,10 @@ export class CategoryService {
       where: { label: category.label },
     });
     if (isExist) {
-      throw new HttpException('Category is already existed!', 400);
+      return {
+        success: false,
+        metadata: { message: 'Category is already existed!' },
+      };
     }
     const url = await this.googleCloudService.upload(
       categoryImage,
@@ -23,14 +33,18 @@ export class CategoryService {
     await this.prismaService.category.create({
       data: { ...category, image_url: url },
     });
-    return { message: 'Create category success!' };
+    return {
+      success: true,
+      metadata: { message: 'Create category success!' },
+    };
   }
   async getAllCategories() {
-    return await this.prismaService.category.findMany({
-      select: { id: true, label: true, description: true, image_url: true },
+    const categories = await this.prismaService.category.findMany({
+      select: basicCategoryField,
     });
-  }
 
+    return { success: true, data: categories };
+  }
   async updateCategoryById(
     id: number,
     categoryInformation: Partial<CreateCategoryParams>,
@@ -40,18 +54,17 @@ export class CategoryService {
       where: { id },
     });
     if (!category) {
-      throw new HttpException('Not Found!', 404);
+      return { success: false, metada: { message: 'Not Found!' } };
     }
-    //check unique label
     if (categoryInformation.label) {
       const isLabelExist = await this.prismaService.category.findUnique({
         where: { label: categoryInformation.label },
       });
       if (isLabelExist && isLabelExist.id !== category.id) {
-        throw new HttpException('Label already Exist', 400);
+        return { success: false, metada: { message: 'Label already Exist!' } };
       }
     }
-    await this.prismaService.category.update({
+    const _category = await this.prismaService.category.update({
       where: { id },
       data: {
         ...(categoryInformation.label && { label: categoryInformation.label }),
@@ -65,10 +78,15 @@ export class CategoryService {
           ),
         }),
       },
+      select: basicCategoryField,
     });
     if (categoryImage) {
       await this.googleCloudService.delete(category.image_url);
     }
-    return { message: 'Update successfully!' };
+    return {
+      success: true,
+      data: _category,
+      metada: { message: 'Update successfully!' },
+    };
   }
 }

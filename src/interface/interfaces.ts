@@ -68,3 +68,7 @@ export interface QueryProductParams {
     lte?: number;
   };
 }
+export interface PaginationParams {
+  skip: number;
+  take: number;
+}

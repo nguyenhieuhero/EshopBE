@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HelperService } from 'src/helper/helper.service';
 import { Request, Response } from 'express';
@@ -19,7 +19,10 @@ export class AuthService {
       where: { OR: [{ email }, { phone }] },
     });
     if (isExist) {
-      throw new HttpException('Email or phone already existed!!!', 400);
+      return {
+        success: false,
+        metadata: { message: 'Email or phone already existed!!!' },
+      };
     }
     const defaulImg = fs.readFileSync('assets//Male_Avatar.jpg');
     const url = await this.googleCloudService.upload(
@@ -27,31 +30,41 @@ export class AuthService {
       firebasePath.USER,
     );
     const hashPass = await this.helper.hash(password);
-    const user = await this.prismaService.user.create({
-      data: {
-        email,
-        password: hashPass,
-        fullname,
-        address,
-        phone,
-        image_url: url,
-      },
-    });
-    return { message: 'Đăng ký thành công', success: true };
+    try {
+      const user = await this.prismaService.user.create({
+        data: {
+          email,
+          password: hashPass,
+          fullname,
+          address,
+          phone,
+          image_url: url,
+        },
+      });
+      return { success: true };
+    } catch (error) {
+      return { success: false, metadata: { message: error.message } };
+    }
   }
   async signin({ email, password }: SignInParams, response: Response) {
     const user = await this.prismaService.user.findUnique({
       where: { email },
     });
     if (!user) {
-      throw new HttpException('Invalid email or password', 400);
+      return {
+        success: false,
+        metadata: { message: 'Invalid email or password' },
+      };
     }
     const isValidPassword = await this.helper.hashCompare(
       password,
       user.password,
     );
     if (!isValidPassword) {
-      throw new HttpException('Invalid email or password', 400);
+      return {
+        success: false,
+        metadata: { message: 'Invalid email or password' },
+      };
     }
     const accessToken = this.helper.createAcessToken({
       id: user.id,
@@ -77,7 +90,10 @@ export class AuthService {
     const oldRefreshToken = request.cookies['RefreshToken'];
     const oldAccessToken = request.headers?.authorization?.split('Bearer ')[1];
     if (!oldRefreshToken || !oldAccessToken) {
-      throw new HttpException('Token Missing!!!', 400);
+      return {
+        success: false,
+        metadata: { message: 'Token Missing!' },
+      };
     }
     try {
       const refreshTokenPayload = this.helper.verifyRefeshToken(
@@ -107,21 +123,10 @@ export class AuthService {
           AccessToken: newAccessToken,
         });
       } else {
-        throw new HttpException('Invalid Token', 401);
+        return { success: false, metadata: { message: 'Invalid Token!' } };
       }
     } catch (error) {
-      throw new HttpException('Invalid Token', 401);
+      return { success: false, metadata: { message: 'Invalid Token!' } };
     }
   }
 }
-// if (newToken) {
-//       res.cookie('RefreshToken', newToken.newRefreshToken, {
-//         httpOnly: true,
-//       });
-//       res.send({
-//         success: true,
-//         AccessToken: newToken.newAccessToken,
-//       });
-//     }
-//     res.send({ success: false });
-//   }

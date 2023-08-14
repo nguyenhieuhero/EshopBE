@@ -3,6 +3,7 @@ import { firebasePath } from 'src/enum/enum';
 import { GoogleCloudService } from 'src/googlecloud/googlecloud.service';
 import {
   CreateProductParams,
+  PaginationParams,
   QueryProductParams,
 } from 'src/interface/interfaces';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -14,6 +15,9 @@ const productBasicField = {
   description: true,
   quantity: true,
   image_url: true,
+  categories: {
+    select: { id: true, label: true },
+  },
 };
 
 @Injectable()
@@ -43,59 +47,74 @@ export class ProductService {
       where: { name },
     });
     if (isExist) {
-      throw new HttpException('Product name exist', 400);
+      return { success: false, metadata: { message: 'Product name exist!' } };
     }
     const url = await this.googleCloudService.upload(
       productImage.buffer,
       firebasePath.PRODUCT,
     );
-    const product = await this.prismaService.product.create({
-      data: {
-        name,
-        price,
-        description,
-        quantity,
-        image_url: url,
-      },
-    });
     try {
-      await this.prismaService.categoryProduct.createMany({
-        data: validCategoryIds.map((categoryId) => {
-          return { product_id: product.id, category_id: categoryId };
-        }),
+      const product = await this.prismaService.product.create({
+        data: {
+          name,
+          price,
+          description,
+          quantity,
+          image_url: url,
+          categories: {
+            connect: validCategoryIds.map((categoryId) => {
+              return { id: categoryId };
+            }),
+          },
+        },
       });
       return { success: true };
     } catch (error) {
-      return { success: false, message: 'some thing wrong!!' };
+      return { success: false, metadata: { message: error.message } };
     }
   }
 
-  async getProduct(productFilter: QueryProductParams, categoryIds: string) {
+  async getProduct(
+    productFilter: QueryProductParams,
+    pagination: PaginationParams,
+    categoryIds: string,
+  ) {
     try {
-      let productIdsArray: string[];
-      if (categoryIds) {
-        const _categoryIds = categoryIds
-          .split(',')
-          .map((categoryId) => Number.parseInt(categoryId));
-        const validCategoryIds = await this.categoryIdValidate(_categoryIds);
-        const categoryProducts =
-          await this.prismaService.categoryProduct.findMany({
-            where: { category_id: { in: validCategoryIds } },
-            select: { product_id: true },
-          });
-        productIdsArray = categoryProducts.map((e) => e.product_id);
-      }
-
-      const products = await this.prismaService.product.findMany({
-        select: productBasicField,
-        where: {
-          ...productFilter,
-          ...(productIdsArray && { id: { in: productIdsArray } }),
-        },
-      });
-      return products;
+      const filter = {
+        ...productFilter,
+        ...(categoryIds && {
+          categories: {
+            some: {
+              id: {
+                in: await this.categoryIdValidate(
+                  categoryIds
+                    .split(',')
+                    .map((categoryId) => Number.parseInt(categoryId)),
+                ),
+              },
+            },
+          },
+        }),
+      };
+      const [products, count] = await Promise.all([
+        this.prismaService.product.findMany({
+          select: productBasicField,
+          ...pagination,
+          where: filter,
+        }),
+        this.prismaService.product.count({ where: filter }),
+      ]);
+      return {
+        success: true,
+        data: products,
+        metadata: { ...pagination, count },
+      };
     } catch (error) {
-      return [];
+      return {
+        success: false,
+        data: [],
+        metadata: { message: error.message },
+      };
     }
   }
 
@@ -105,9 +124,9 @@ export class ProductService {
       select: productBasicField,
     });
     if (!product) {
-      return new HttpException('Not Found', 404);
+      return { success: false, metadata: { message: 'Not Found!' } };
     }
-    return product;
+    return { success: true, data: product };
   }
 
   async updateProductById(
@@ -117,23 +136,12 @@ export class ProductService {
   ) {
     const product = await this.prismaService.product.findUnique({
       where: { id },
+      select: productBasicField,
     });
     if (!product) {
-      throw new HttpException('Not Found!', 404);
+      return { success: false, metadata: { message: 'Not Found!' } };
     }
-    if (productInformation.categories) {
-      const validCategoryIds = await this.categoryIdValidate(
-        productInformation.categories,
-      );
-      await this.prismaService.categoryProduct.deleteMany({
-        where: { product_id: product.id },
-      });
-      await this.prismaService.categoryProduct.createMany({
-        data: validCategoryIds.map((categoryId) => {
-          return { product_id: product.id, category_id: categoryId };
-        }),
-      });
-    }
+
     if (productImage) {
       await this.googleCloudService.delete(product.image_url);
     }
@@ -154,8 +162,20 @@ export class ProductService {
             firebasePath.PRODUCT,
           ),
         }),
+        ...(productInformation.categories && {
+          categories: {
+            disconnect: product.categories.map((field) => {
+              return { id: field.id };
+            }),
+            connect: await this.categoryIdValidate(
+              productInformation.categories,
+            ).then((validCategories) =>
+              validCategories.map((category) => ({ id: category })),
+            ),
+          },
+        }),
       },
     });
-    return { message: 'Cập nhật thành công!' };
+    return { success: true };
   }
 }

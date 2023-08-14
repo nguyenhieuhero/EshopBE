@@ -77,6 +77,8 @@ export class ProductController {
     @Query('maxPrice') maxPrice?: string,
     @Query('name') _name?: string,
     @Query('categoryIds') categoryIds?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
     const price =
       minPrice || maxPrice
@@ -89,7 +91,17 @@ export class ProductController {
       ...(price && { price }),
       ...(_name && { name: { contains: _name } }),
     };
-    return this.productService.getProduct(productFilter, categoryIds);
+    const _take = limit ? parseInt(limit) : 5;
+    const _skip = parseInt(page) >= 1 ? parseInt(page) - 1 : 0;
+    const pagination = {
+      take: _take,
+      skip: _skip * _take,
+    };
+    return this.productService.getProduct(
+      productFilter,
+      pagination,
+      categoryIds,
+    );
   }
 
   @Get('/:id')

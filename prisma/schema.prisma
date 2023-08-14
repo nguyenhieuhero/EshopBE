@@ -22,28 +22,26 @@ model User {
 }
 
 model Category {
-  id               Int               @id @default(autoincrement())
-  label            String            @unique
-  description      String
-  image_url        String
-  created_at       DateTime          @default(now())
-  modified_at      DateTime          @updatedAt
-  Category_Product CategoryProduct[]
+  id          Int       @id @default(autoincrement())
+  label       String    @unique
+  description String
+  image_url   String
+  created_at  DateTime  @default(now())
+  modified_at DateTime  @updatedAt
+  products    Product[]
 }
 
 model Product {
-  id               String            @id @default(uuid())
-  name             String            @unique
-  price            Float
-  description      String
-  quantity         Int
-  image_url        String
-  // discount_id      String
-  created_at       DateTime          @default(now())
-  modified_at      DateTime          @updatedAt
-  Category_Product CategoryProduct[]
-  OrderItem        OrderItem[]
-  // discount         Discount          @relation(fields: [discount_id], references: [id])
+  id          String      @id @default(uuid())
+  name        String      @unique
+  price       Float
+  description String
+  quantity    Int
+  image_url   String
+  categories  Category[]
+  created_at  DateTime    @default(now())
+  modified_at DateTime    @updatedAt
+  OrderItem   OrderItem[]
 }
 
 // model Discount {
@@ -54,15 +52,6 @@ model Product {
 //   modified_at      DateTime  @updatedAt
 //   Product          Product[]
 // }
-
-model CategoryProduct {
-  product_id  String
-  category_id Int
-  category    Category @relation(fields: [category_id], references: [id])
-  product     Product  @relation(fields: [product_id], references: [id])
-
-  @@id([product_id, category_id])
-}
 
 model Payment {
   id           String   @id @default(uuid())

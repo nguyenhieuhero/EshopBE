@@ -34,7 +34,7 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Get('/me')
   getUserInfor(@VerifiedUser() user: BasicUserInforDto) {
-    return { success: false, data: new BasicUserInforDto(user) };
+    return { success: true, data: new BasicUserInforDto(user) };
   }
   @Roles('BASIC', 'ADMIN')
   @UseGuards(AuthGuard)

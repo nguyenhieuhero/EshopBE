@@ -62,11 +62,17 @@ export class CategoryController {
       pagination,
     );
   }
+
+  @Get('/:id')
+  getCategoryById(@Param('id', ParseIntPipe) id: number) {
+    return this.categoryService.getCategoryById(id);
+  }
+
   @Roles('ADMIN')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('categoryImage'))
   @Patch('/:id')
-  updateCategoryt(
+  updateCategory(
     @Param('id', ParseIntPipe) id: number,
     @GetCategoryInformation()
     categoryInformation: Partial<CreateCategoryDto>,

@@ -119,4 +119,24 @@ export class CategoryService {
       metadata: { message: 'Update successfully!' },
     };
   }
+  async getCategoryById(id: number) {
+    const category = await this.prismaService.category.findUnique({
+      where: { id },
+      select: categoryBasicField,
+    });
+    console.log(category);
+    if (!category) {
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Not Found!' },
+        },
+        404,
+      );
+    }
+    return {
+      success: true,
+      data: category,
+    };
+  }
 }

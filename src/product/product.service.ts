@@ -35,7 +35,10 @@ export class ProductService {
     if (target.every((id) => categoryIds.includes(id))) {
       return target;
     }
-    throw new HttpException('Invalid Category!', 400);
+    throw new HttpException(
+      { success: false, metadata: { message: 'Invalid Category!' } },
+      400,
+    );
   }
 
   async createProduct(
@@ -47,7 +50,13 @@ export class ProductService {
       where: { name },
     });
     if (isExist) {
-      return { success: false, metadata: { message: 'Product name exist!' } };
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Product name exist!' },
+        },
+        400,
+      );
     }
     const url = await this.googleCloudService.upload(
       productImage.buffer,
@@ -67,10 +76,21 @@ export class ProductService {
             }),
           },
         },
+        select: productBasicField,
       });
-      return { success: true };
+      return {
+        success: true,
+        data: product,
+        meatadata: { message: 'Product create successfully' },
+      };
     } catch (error) {
-      return { success: false, metadata: { message: error.message } };
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: error.message },
+        },
+        400,
+      );
     }
   }
 
@@ -110,11 +130,14 @@ export class ProductService {
         metadata: { ...pagination, count },
       };
     } catch (error) {
-      return {
-        success: false,
-        data: [],
-        metadata: { message: error.message },
-      };
+      throw new HttpException(
+        {
+          success: false,
+          data: [],
+          metadata: { message: error.message },
+        },
+        400,
+      );
     }
   }
 
@@ -124,7 +147,13 @@ export class ProductService {
       select: productBasicField,
     });
     if (!product) {
-      return { success: false, metadata: { message: 'Not Found!' } };
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Not Found!' },
+        },
+        404,
+      );
     }
     return { success: true, data: product };
   }
@@ -139,13 +168,16 @@ export class ProductService {
       select: productBasicField,
     });
     if (!product) {
-      return { success: false, metadata: { message: 'Not Found!' } };
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Not Found!' },
+        },
+        404,
+      );
     }
 
-    if (productImage) {
-      await this.googleCloudService.delete(product.image_url);
-    }
-    await this.prismaService.product.update({
+    const _product = await this.prismaService.product.update({
       where: { id },
       data: {
         ...(productInformation.name && { name: productInformation.name }),
@@ -175,7 +207,15 @@ export class ProductService {
           },
         }),
       },
+      select: productBasicField,
     });
-    return { success: true };
+    if (productImage) {
+      await this.googleCloudService.delete(product.image_url);
+    }
+    return {
+      success: true,
+      data: _product,
+      metadata: { message: 'Product update successfully' },
+    };
   }
 }

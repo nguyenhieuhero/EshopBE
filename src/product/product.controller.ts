@@ -91,11 +91,11 @@ export class ProductController {
       ...(price && { price }),
       ...(_name && { name: { contains: _name } }),
     };
-    const _take = limit ? parseInt(limit) : 5;
-    const _skip = parseInt(page) >= 1 ? parseInt(page) - 1 : 0;
+    const _take = limit ? parseInt(limit) : 9;
+    const _pageIndex = parseInt(page) >= 1 ? parseInt(page) - 1 : 0;
     const pagination = {
       take: _take,
-      skip: _skip * _take,
+      skip: _pageIndex * _take,
     };
     return this.productService.getProduct(
       productFilter,

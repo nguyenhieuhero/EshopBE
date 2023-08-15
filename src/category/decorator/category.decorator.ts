@@ -8,8 +8,18 @@ export const GetCategoryInformation = createParamDecorator(
   (_, context: ExecutionContext) => {
     const request = context.switchToHttp().getRequest();
 
-    return request.body.categoryInformation
-      ? JSON.parse(request.body.categoryInformation)
-      : undefined;
+    try {
+      return request.body.categoryInformation
+        ? JSON.parse(request.body.categoryInformation)
+        : undefined;
+    } catch (error) {
+      return new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Invalid Syntax' },
+        },
+        400,
+      );
+    }
   },
 );

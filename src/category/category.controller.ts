@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -42,8 +43,24 @@ export class CategoryController {
     return this.categoryService.createCategory(category, categoryImage.buffer);
   }
   @Get()
-  getAllCategories() {
-    return this.categoryService.getAllCategories();
+  getAllCategories(
+    @Query('name') _name?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const categorySearchFilter = {
+      ...(_name && { label: { contains: _name } }),
+    };
+    const _take = limit ? parseInt(limit) : 5;
+    const _pageIndex = parseInt(page) >= 1 ? parseInt(page) - 1 : 0;
+    const pagination = {
+      take: _take,
+      skip: _pageIndex * _take,
+    };
+    return this.categoryService.getAllCategories(
+      categorySearchFilter,
+      pagination,
+    );
   }
   @Roles('ADMIN')
   @UseGuards(AuthGuard)

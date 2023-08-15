@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HelperService } from 'src/helper/helper.service';
 import { Request, Response } from 'express';
@@ -19,10 +19,13 @@ export class AuthService {
       where: { OR: [{ email }, { phone }] },
     });
     if (isExist) {
-      return {
-        success: false,
-        metadata: { message: 'Email or phone already existed!!!' },
-      };
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Email or phone already existed!!!' },
+        },
+        400,
+      );
     }
     const defaulImg = fs.readFileSync('assets//Male_Avatar.jpg');
     const url = await this.googleCloudService.upload(
@@ -43,7 +46,13 @@ export class AuthService {
       });
       return { success: true };
     } catch (error) {
-      return { success: false, metadata: { message: error.message } };
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: error.message },
+        },
+        400,
+      );
     }
   }
   async signin({ email, password }: SignInParams, response: Response) {
@@ -51,20 +60,26 @@ export class AuthService {
       where: { email },
     });
     if (!user) {
-      return {
-        success: false,
-        metadata: { message: 'Invalid email or password' },
-      };
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Invalid email or password' },
+        },
+        400,
+      );
     }
     const isValidPassword = await this.helper.hashCompare(
       password,
       user.password,
     );
     if (!isValidPassword) {
-      return {
-        success: false,
-        metadata: { message: 'Invalid email or password' },
-      };
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Invalid email or password' },
+        },
+        400,
+      );
     }
     const accessToken = this.helper.createAcessToken({
       id: user.id,
@@ -90,10 +105,13 @@ export class AuthService {
     const oldRefreshToken = request.cookies['RefreshToken'];
     const oldAccessToken = request.headers?.authorization?.split('Bearer ')[1];
     if (!oldRefreshToken || !oldAccessToken) {
-      return {
-        success: false,
-        metadata: { message: 'Token Missing!' },
-      };
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Token Missing!' },
+        },
+        400,
+      );
     }
     try {
       const refreshTokenPayload = this.helper.verifyRefeshToken(
@@ -123,10 +141,22 @@ export class AuthService {
           AccessToken: newAccessToken,
         });
       } else {
-        return { success: false, metadata: { message: 'Invalid Token!' } };
+        throw new HttpException(
+          {
+            success: false,
+            metadata: { message: 'Invalid Token!' },
+          },
+          400,
+        );
       }
     } catch (error) {
-      return { success: false, metadata: { message: 'Invalid Token!' } };
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: error.message },
+        },
+        400,
+      );
     }
   }
 }

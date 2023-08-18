@@ -88,7 +88,7 @@ export class CategoryService {
         throw new HttpException(
           {
             success: false,
-            metadata: { message: 'Label already Exist!' },
+            metadata: { message: 'Label is already existed!' },
           },
           400,
         );
@@ -124,7 +124,6 @@ export class CategoryService {
       where: { id },
       select: categoryBasicField,
     });
-    console.log(category);
     if (!category) {
       throw new HttpException(
         {

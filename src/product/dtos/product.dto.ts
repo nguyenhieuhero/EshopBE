@@ -1,3 +1,4 @@
+import { Exclude, Expose } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -7,13 +8,8 @@ import {
   IsArray,
   ValidateNested,
   IsNumber,
+  IsUUID,
 } from 'class-validator';
-
-class CategoryId {
-  @IsInt()
-  @IsNotEmpty()
-  id: number;
-}
 
 export class CreateProductDto {
   @IsString()
@@ -23,6 +19,10 @@ export class CreateProductDto {
   @IsNumber()
   @IsNotEmpty()
   price: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  import_price: number;
 
   @IsString()
   @IsNotEmpty()
@@ -35,4 +35,47 @@ export class CreateProductDto {
 
   @IsNumber({}, { each: true })
   categories: number[];
+}
+
+export class ResponseProductDto {
+  @IsUUID()
+  @IsNotEmpty()
+  id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  description: string;
+
+  @Exclude()
+  inventory: {
+    quantity: number;
+    price: number;
+  };
+
+  @Expose()
+  get quantity(): number {
+    return this.inventory.quantity;
+  }
+
+  @Expose()
+  get price(): number {
+    return this.inventory.price;
+  }
+
+  @IsString()
+  @IsNotEmpty()
+  image_url: string;
+
+  @IsArray()
+  categories: {
+    id: number;
+    label: string;
+  }[];
+  constructor(partial: Partial<ResponseProductDto>) {
+    Object.assign(this, partial);
+  }
 }

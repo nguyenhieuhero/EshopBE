@@ -7,13 +7,15 @@ import {
   QueryProductParams,
 } from 'src/interface/interfaces';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ResponseProductDto } from './dtos/product.dto';
 
 const productBasicField = {
   id: true,
   name: true,
-  price: true,
   description: true,
-  quantity: true,
+  inventory: {
+    select: { quantity: true, price: true },
+  },
   image_url: true,
   categories: {
     select: { id: true, label: true },
@@ -42,7 +44,14 @@ export class ProductService {
   }
 
   async createProduct(
-    { name, price, description, quantity, categories }: CreateProductParams,
+    {
+      name,
+      price,
+      description,
+      quantity,
+      categories,
+      import_price,
+    }: CreateProductParams,
     productImage: Express.Multer.File,
   ) {
     const validCategoryIds = await this.categoryIdValidate(categories);
@@ -58,18 +67,23 @@ export class ProductService {
         400,
       );
     }
-    const url = await this.googleCloudService.upload(
-      productImage.buffer,
-      firebasePath.PRODUCT,
-    );
     try {
+      const url = await this.googleCloudService.upload(
+        productImage.buffer,
+        firebasePath.PRODUCT,
+      );
       const product = await this.prismaService.product.create({
         data: {
           name,
-          price,
           description,
-          quantity,
           image_url: url,
+          inventory: {
+            create: {
+              import_price,
+              price,
+              quantity,
+            },
+          },
           categories: {
             connect: validCategoryIds.map((categoryId) => {
               return { id: categoryId };
@@ -80,10 +94,11 @@ export class ProductService {
       });
       return {
         success: true,
-        data: product,
+        data: new ResponseProductDto(product),
         meatadata: { message: 'Product create successfully' },
       };
     } catch (error) {
+      console.log(error);
       throw new HttpException(
         {
           success: false,
@@ -126,7 +141,7 @@ export class ProductService {
       ]);
       return {
         success: true,
-        data: products,
+        data: products.map((product) => new ResponseProductDto(product)),
         metadata: { ...pagination, count },
       };
     } catch (error) {
@@ -155,7 +170,7 @@ export class ProductService {
         404,
       );
     }
-    return { success: true, data: product };
+    return { success: true, data: new ResponseProductDto(product) };
   }
 
   async updateProductById(
@@ -214,7 +229,7 @@ export class ProductService {
     }
     return {
       success: true,
-      data: _product,
+      data: new ResponseProductDto(_product),
       metadata: { message: 'Product update successfully' },
     };
   }

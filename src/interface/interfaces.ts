@@ -56,6 +56,7 @@ export interface CreateCategoryParams {
 export interface CreateProductParams {
   name: string;
   price: number;
+  import_price: number;
   description: string;
   quantity: number;
   categories: number[];
@@ -71,4 +72,9 @@ export interface QueryProductParams {
 export interface PaginationParams {
   skip: number;
   take: number;
+}
+
+export interface CartItemParams {
+  product_id: string;
+  quantity: number;
 }

@@ -22,6 +22,7 @@ import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CreateProductDto } from './dtos/product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetProductInformation } from './decorator/product.decorator';
+import { ProductIdParamGuard } from './guard/product.guard';
 
 @Controller('product')
 export class ProductController {
@@ -47,10 +48,11 @@ export class ProductController {
 
   @Roles('ADMIN')
   @UseGuards(AuthGuard)
+  @UseGuards(ProductIdParamGuard)
   @UseInterceptors(FileInterceptor('productImage'))
-  @Patch('/:id')
+  @Patch('/:productId')
   updateProduct(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('productId') id: string,
     @GetProductInformation()
     productInformation: Partial<CreateProductDto>,
     @UploadedFile(
@@ -103,9 +105,9 @@ export class ProductController {
       categoryIds,
     );
   }
-
-  @Get('/:id')
-  getProductById(@Param('id', ParseUUIDPipe) id: string) {
+  @UseGuards(ProductIdParamGuard)
+  @Get('/:productId')
+  getProductById(@Param('productId') id: string) {
     return this.productService.getProductById(id);
   }
 }

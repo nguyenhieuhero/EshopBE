@@ -161,15 +161,6 @@ export class ProductService {
       where: { id },
       select: productBasicField,
     });
-    if (!product) {
-      throw new HttpException(
-        {
-          success: false,
-          metadata: { message: 'Not Found!' },
-        },
-        404,
-      );
-    }
     return { success: true, data: new ResponseProductDto(product) };
   }
 
@@ -182,21 +173,11 @@ export class ProductService {
       where: { id },
       select: productBasicField,
     });
-    if (!product) {
-      throw new HttpException(
-        {
-          success: false,
-          metadata: { message: 'Not Found!' },
-        },
-        404,
-      );
-    }
 
     const _product = await this.prismaService.product.update({
       where: { id },
       data: {
         ...(productInformation.name && { name: productInformation.name }),
-        ...(productInformation.price && { price: productInformation.price }),
         ...(productInformation.description && {
           description: productInformation.description,
         }),

@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
+// import * as csurf from 'csurf';
 import { initializeFirebaseApp } from './config/firebase.config';
 
 initializeFirebaseApp();
@@ -13,6 +14,7 @@ async function bootstrap() {
     origin: process.env.FE_URL,
   });
   app.use(cookieParser());
+  // app.use(csurf({ cookie: true }));
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

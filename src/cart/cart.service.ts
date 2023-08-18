@@ -59,12 +59,18 @@ export class CartService {
   }
 
   async updateCartItem(user_id: string, product_id: string, quantity: number) {
-    const cartItem = await this.prismaService.cartItem.update({
-      where: { user_id_product_id: { user_id, product_id } },
-      data: { product_id, quantity },
-      select: basicCartItemField,
-    });
-    if (!cartItem) {
+    try {
+      const cartItem = await this.prismaService.cartItem.update({
+        where: { user_id_product_id: { user_id, product_id } },
+        data: { product_id, quantity },
+        select: basicCartItemField,
+      });
+      return {
+        success: true,
+        data: cartItem,
+        metadata: { message: 'Update cart Item successfully!' },
+      };
+    } catch (error) {
       throw new HttpException(
         {
           success: false,
@@ -73,11 +79,6 @@ export class CartService {
         404,
       );
     }
-    return {
-      success: true,
-      data: cartItem,
-      metadata: { message: 'Update cart Item successfully!' },
-    };
   }
   async getMyCartItems(user_id: string) {
     const cartItems = await this.prismaService.cartItem.findMany({

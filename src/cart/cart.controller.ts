@@ -7,8 +7,6 @@ import {
   HttpException,
   Param,
   ParseIntPipe,
-  ParseUUIDPipe,
-  Patch,
   Post,
   Put,
   Query,
@@ -19,7 +17,6 @@ import { Roles } from 'src/auth/decorator/roles.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { VerifiedUser } from 'src/user/decorator/user.decorator';
 import { BasicUserInforDto } from 'src/user/dtos/user.dto';
-import { CartItemDto } from './dtos/cart.dto';
 import { ProductIdParamGuard } from 'src/product/guard/product.guard';
 
 @Controller('cart')

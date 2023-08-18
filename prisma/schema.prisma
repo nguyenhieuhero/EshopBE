@@ -53,17 +53,23 @@ model Product {
   modified_at DateTime   @updatedAt
   inventory   Inventory?
   CartItem    CartItem[]
+
+  @@unique([id, name])
 }
 
 model Inventory {
   product_id   String   @id
+  product_name String   @unique
   price        Float
   import_price Float
   quantity     Int
-  sales        Int      @default(0)
-  product      Product  @relation(fields: [product_id], references: [id])
+  revenue      Float    @default(0)
+  profit       Float    @default(0)
+  product      Product  @relation(fields: [product_id, product_name], references: [id, name])
   created_at   DateTime @default(now())
   modified_at  DateTime @updatedAt
+
+  @@unique([product_id, product_name])
 }
 
 // model Payment {

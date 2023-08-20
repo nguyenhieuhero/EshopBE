@@ -11,4 +11,5 @@ export class InventoryService {
       data: inventories,
     };
   }
+  async updateInventory() {}
 }

@@ -7,7 +7,7 @@ import { InventoryService } from './inventory.service';
 export class InventoryController {
   constructor(private inventoryService: InventoryService) {}
 
-  @Roles('ADMIN', 'BASIC')
+  @Roles('ADMIN')
   @UseGuards(AuthGuard)
   @Get()
   getAllInventory() {

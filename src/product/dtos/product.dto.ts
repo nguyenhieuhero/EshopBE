@@ -9,6 +9,7 @@ import {
   ValidateNested,
   IsNumber,
   IsUUID,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateProductDto {
@@ -33,6 +34,22 @@ export class CreateProductDto {
   @IsNotEmpty()
   quantity: number;
 
+  @IsNumber({}, { each: true })
+  categories: number[];
+}
+
+export class UpdateProductDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  description: string;
+
+  @IsOptional()
   @IsNumber({}, { each: true })
   categories: number[];
 }

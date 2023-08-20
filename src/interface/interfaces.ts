@@ -62,6 +62,12 @@ export interface CreateProductParams {
   categories: number[];
 }
 
+export interface UpdateProductParams {
+  name: string;
+  description: string;
+  categories: number[];
+}
+
 export interface QueryProductParams {
   name?: { contains?: string };
   price?: {
@@ -77,4 +83,10 @@ export interface PaginationParams {
 export interface CartItemParams {
   product_id: string;
   quantity: number;
+}
+
+export interface UpdateInventoryParams {
+  price?: number;
+  import_price?: number;
+  quantity?: number;
 }

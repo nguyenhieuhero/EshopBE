@@ -19,7 +19,7 @@ import {
 import { ProductService } from './product.service';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
-import { CreateProductDto } from './dtos/product.dto';
+import { CreateProductDto, UpdateProductDto } from './dtos/product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetProductInformation } from './decorator/product.decorator';
 import { ProductIdParamGuard } from './guard/product.guard';
@@ -54,7 +54,7 @@ export class ProductController {
   updateProduct(
     @Param('productId') id: string,
     @GetProductInformation()
-    productInformation: Partial<CreateProductDto>,
+    productInformation: UpdateProductDto,
     @UploadedFile(
       new ParseFilePipe({
         validators: [

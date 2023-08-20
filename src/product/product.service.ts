@@ -5,6 +5,7 @@ import {
   CreateProductParams,
   PaginationParams,
   QueryProductParams,
+  UpdateProductParams,
 } from 'src/interface/interfaces';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ResponseProductDto } from './dtos/product.dto';
@@ -166,23 +167,29 @@ export class ProductService {
 
   async updateProductById(
     id: string,
-    productInformation: Partial<CreateProductParams>,
+    productInformation: UpdateProductParams,
     productImage: Buffer,
   ) {
-    const product = await this.prismaService.product.findUnique({
-      where: { id },
-      select: productBasicField,
-    });
-
-    const _product = await this.prismaService.product.update({
+    const isNameExist = productInformation.name
+      ? await this.prismaService.product.findUnique({
+          where: { name: productInformation.name },
+        })
+      : undefined;
+    if (isNameExist && isNameExist.id !== id) {
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Product name exist!' },
+        },
+        400,
+      );
+    }
+    const product = await this.prismaService.product.update({
       where: { id },
       data: {
         ...(productInformation.name && { name: productInformation.name }),
         ...(productInformation.description && {
           description: productInformation.description,
-        }),
-        ...(productInformation.quantity && {
-          quantity: productInformation.quantity,
         }),
         ...(productImage && {
           image_url: await this.googleCloudService.upload(
@@ -192,9 +199,7 @@ export class ProductService {
         }),
         ...(productInformation.categories && {
           categories: {
-            disconnect: product.categories.map((field) => {
-              return { id: field.id };
-            }),
+            set: [],
             connect: await this.categoryIdValidate(
               productInformation.categories,
             ).then((validCategories) =>
@@ -205,12 +210,12 @@ export class ProductService {
       },
       select: productBasicField,
     });
-    if (productImage) {
-      await this.googleCloudService.delete(product.image_url);
-    }
+    // if (productImage) {
+    //   await this.googleCloudService.delete(product.image_url);
+    // }
     return {
       success: true,
-      data: new ResponseProductDto(_product),
+      data: new ResponseProductDto(product),
       metadata: { message: 'Product update successfully' },
     };
   }

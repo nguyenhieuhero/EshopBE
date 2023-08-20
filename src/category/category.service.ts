@@ -41,7 +41,7 @@ export class CategoryService {
     });
     return {
       success: true,
-      metadata: { message: 'Create category success!' },
+      metadata: { message: 'Create category successfully!' },
     };
   }
   async getAllCategories(

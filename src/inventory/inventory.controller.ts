@@ -20,7 +20,9 @@ export class InventoryController {
   @UseGuards(AuthGuard)
   @UseGuards(ProductIdParamGuard)
   @Get('/:productId')
-  getInventoryById(@Param('productId') productId: string) {}
+  getInventoryById(@Param('productId') productId: string) {
+    return this.inventoryService.getInventoryById(productId);
+  }
 
   @Roles('ADMIN')
   @UseGuards(AuthGuard)

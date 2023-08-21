@@ -6,6 +6,7 @@ const basicCartItemField = {
   product_id: true,
   quantity: true,
 };
+const cartItemWithProductInfor = {};
 @Injectable()
 export class CartService {
   constructor(private prismaService: PrismaService) {}
@@ -83,7 +84,11 @@ export class CartService {
   async getMyCartItems(user_id: string) {
     const cartItems = await this.prismaService.cartItem.findMany({
       where: { user_id },
-      select: basicCartItemField,
+      select: {
+        product_id: true,
+        quantity: true,
+        product: { include: { inventory: true } },
+      },
     });
     return {
       success: true,

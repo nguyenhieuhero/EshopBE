@@ -51,7 +51,7 @@ export class CategoryController {
     const categorySearchFilter = {
       ...(_name && { label: { contains: _name } }),
     };
-    const _take = limit ? parseInt(limit) : 5;
+    const _take = limit ? parseInt(limit) : 10;
     const _pageIndex = parseInt(page) >= 1 ? parseInt(page) - 1 : 0;
     const pagination = {
       take: _take,

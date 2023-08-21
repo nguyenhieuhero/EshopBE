@@ -60,7 +60,7 @@ export class CategoryService {
     return {
       success: true,
       data: categories,
-      metatdata: { ...pagination, count },
+      metadata: { ...pagination, count },
     };
   }
   async updateCategoryById(

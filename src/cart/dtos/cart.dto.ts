@@ -55,13 +55,8 @@ export class ResponseCartItemDto {
   }
 
   @Expose()
-  get price() {
+  get pricePerUnit() {
     return this.product.inventory.price;
-  }
-
-  @Expose()
-  get totalPrice() {
-    return this.product.inventory.price * this.quantity;
   }
 
   constructor(partial: Partial<ResponseCartItemDto>) {

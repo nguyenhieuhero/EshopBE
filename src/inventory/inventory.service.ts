@@ -5,13 +5,24 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class InventoryService {
   constructor(private prismaService: PrismaService) {}
-  async getAllInventory() {
+  async getAllInventories() {
     const inventories = await this.prismaService.inventory.findMany();
     return {
       success: true,
       data: inventories,
     };
   }
+
+  async getInventoryById(product_id: string) {
+    const _inventory = await this.prismaService.inventory.findUnique({
+      where: { product_id },
+    });
+    return {
+      success: true,
+      data: _inventory,
+    };
+  }
+
   async updateInventory(product_id: string, inventory: UpdateInventoryParams) {
     const _inventory = await this.prismaService.inventory.update({
       where: { product_id },

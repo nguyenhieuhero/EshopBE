@@ -13,8 +13,14 @@ export class InventoryController {
   @UseGuards(AuthGuard)
   @Get()
   getAllInventory() {
-    return this.inventoryService.getAllInventory();
+    return this.inventoryService.getAllInventories();
   }
+
+  @Roles('ADMIN')
+  @UseGuards(AuthGuard)
+  @UseGuards(ProductIdParamGuard)
+  @Get('/:productId')
+  getInventoryById(@Param('productId') productId: string) {}
 
   @Roles('ADMIN')
   @UseGuards(AuthGuard)

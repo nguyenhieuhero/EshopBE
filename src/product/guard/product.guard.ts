@@ -17,7 +17,7 @@ export class ProductIdParamGuard implements CanActivate {
       throw new HttpException(
         {
           success: false,
-          metadata: { message: 'Product Not Found!' },
+          metadata: { message: 'Not Found!' },
         },
         404,
       );
@@ -32,7 +32,7 @@ export class ProductIdParamGuard implements CanActivate {
     throw new HttpException(
       {
         success: false,
-        metadata: { message: 'Product Not Found!' },
+        metadata: { message: 'Not Found!' },
       },
       404,
     );

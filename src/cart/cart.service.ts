@@ -1,12 +1,32 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { CartItemParams } from 'src/interface/interfaces';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ResponseCartItemDto } from './dtos/cart.dto';
 
 const basicCartItemField = {
   product_id: true,
   quantity: true,
 };
-const cartItemWithProductInfor = {};
+const cartItemWithProductInfor = {
+  quantity: true,
+  product: {
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      image_url: true,
+      categories: {
+        select: {
+          id: true,
+          label: true,
+        },
+      },
+      inventory: {
+        select: { price: true },
+      },
+    },
+  },
+};
 @Injectable()
 export class CartService {
   constructor(private prismaService: PrismaService) {}
@@ -84,15 +104,12 @@ export class CartService {
   async getMyCartItems(user_id: string) {
     const cartItems = await this.prismaService.cartItem.findMany({
       where: { user_id },
-      select: {
-        product_id: true,
-        quantity: true,
-        product: { include: { inventory: true } },
-      },
+      select: cartItemWithProductInfor,
     });
+
     return {
       success: true,
-      data: cartItems,
+      data: cartItems.map((cartItem) => new ResponseCartItemDto(cartItem)),
     };
   }
 }

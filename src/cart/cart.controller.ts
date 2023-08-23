@@ -18,6 +18,7 @@ import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { VerifiedUser } from 'src/user/decorator/user.decorator';
 import { BasicUserInforDto } from 'src/user/dtos/user.dto';
 import { ProductIdParamGuard } from 'src/product/guard/product.guard';
+import { ProductCheckoutDto } from './dtos/cart.dto';
 
 @Controller('cart')
 export class CartController {
@@ -84,9 +85,15 @@ export class CartController {
     return this.cartService.deleteFromCart(id, productId);
   }
 
+  @Roles('ADMIN', 'BASIC')
+  @UseGuards(AuthGuard)
   @Post('/create-checkout')
-  createCheckout() {
-    return this.cartService.createcheckout();
+  createCheckout(
+    @Body() productCheckout: ProductCheckoutDto,
+    @VerifiedUser() user: BasicUserInforDto,
+  ) {
+    return productCheckout;
+    // return this.cartService.createcheckout();
   }
 
   @Post('/checkout-session')

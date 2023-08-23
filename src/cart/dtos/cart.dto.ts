@@ -1,4 +1,5 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Inject, UseGuards } from '@nestjs/common';
+import { Exclude, Expose, Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -10,7 +11,10 @@ import {
   IsNumber,
   IsUUID,
   IsOptional,
+  MinLength,
 } from 'class-validator';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { ProductIdParamGuard } from 'src/product/guard/product.guard';
 export class ResponseCartItemDto {
   @IsInt()
   @IsNotEmpty()
@@ -62,4 +66,21 @@ export class ResponseCartItemDto {
   constructor(partial: Partial<ResponseCartItemDto>) {
     return Object.assign(this, partial);
   }
+}
+
+class SingleProductCheckoutDto {
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @IsInt()
+  @IsNotEmpty()
+  quantity: number;
+}
+
+export class ProductCheckoutDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SingleProductCheckoutDto)
+  products: SingleProductCheckoutDto[];
 }

@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Stripe } from 'stripe';
 
+interface ProductMetadata {
+  metadata: {
+    id: string;
+  };
+}
+
 @Injectable()
 export class StripeService {
   private stripeService: Stripe;
@@ -10,11 +16,19 @@ export class StripeService {
     });
   }
 
-  async checkoutSession(id: string) {
-    const session = await this.stripeService.checkout.sessions.retrieve(id, {
-      expand: ['line_items'],
-    });
-    return session;
+  async checkoutSession(sessionId: string) {
+    const session = await this.stripeService.checkout.sessions.retrieve(
+      sessionId,
+      {
+        expand: ['line_items.data.price.product'],
+      },
+    );
+    console.log(
+      session.line_items.data.map((product) => {
+        const _metadata = product.price.product as unknown as ProductMetadata;
+        return { quantity: product.quantity, id: _metadata.metadata.id };
+      }),
+    );
   }
 
   async createcheckoutSession() {
@@ -22,11 +36,6 @@ export class StripeService {
       { id: 12, quantity: 1, name: 'hehe', price: 10000, description: 'hihe' },
       { id: 23, quantity: 2, name: 'huhu', price: 50000, description: 'hihu' },
     ];
-    const product = await this.stripeService.products.create({
-      id: '',
-      name: 'hehe',
-      description: 'huhi',
-    });
     const session = await this.stripeService.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -37,6 +46,7 @@ export class StripeService {
             product_data: {
               name: item.name,
               description: item.description,
+              metadata: { id: item.id },
             },
             unit_amount: item.price,
           },

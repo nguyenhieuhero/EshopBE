@@ -2,6 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { CartItemParams } from 'src/interface/interfaces';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ResponseCartItemDto } from './dtos/cart.dto';
+import { StripeService } from 'src/stripe/stripe.service';
 
 const basicCartItemField = {
   product_id: true,
@@ -29,7 +30,10 @@ const cartItemWithProductInfor = {
 };
 @Injectable()
 export class CartService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private stripeService: StripeService,
+  ) {}
   async addToCart(user_id: string, product_id: string, quantity: number) {
     const isExist = await this.prismaService.cartItem.findUnique({
       where: { user_id_product_id: { user_id, product_id } },
@@ -111,5 +115,11 @@ export class CartService {
       success: true,
       data: cartItems.map((cartItem) => new ResponseCartItemDto(cartItem)),
     };
+  }
+  async createcheckout() {
+    return await this.stripeService.createcheckoutSession();
+  }
+  async checkoutSession(id: string) {
+    return await this.stripeService.checkoutSession(id);
   }
 }

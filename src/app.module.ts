@@ -14,6 +14,7 @@ import { CategoryModule } from './category/category.module';
 import { CartModule } from './cart/cart.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { OrderModule } from './order/order.module';
+import { StripeService } from './stripe/stripe.service';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { OrderModule } from './order/order.module';
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,
     },
+    StripeService,
   ],
 })
 export class AppModule {}

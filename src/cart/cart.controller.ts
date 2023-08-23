@@ -83,4 +83,14 @@ export class CartController {
   ) {
     return this.cartService.deleteFromCart(id, productId);
   }
+
+  @Post('/create-checkout')
+  createCheckout() {
+    return this.cartService.createcheckout();
+  }
+
+  @Post('/checkout-session')
+  checkoutSession(@Query('id') id: string) {
+    return this.cartService.checkoutSession(id);
+  }
 }

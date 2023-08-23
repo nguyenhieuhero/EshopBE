@@ -19,6 +19,7 @@ model User {
   modified_at DateTime   @updatedAt
   image_url   String
   cart        CartItem[]
+  Order       Order[]
 }
 
 model CartItem {
@@ -72,36 +73,12 @@ model Inventory {
   @@unique([product_id, product_name])
 }
 
-// model Payment {
-//   id           String   @id @default(uuid())
-//   amount       Float
-//   provider     String
-//   created_at   DateTime @default(now())
-//   modified_at  DateTime @updatedAt
-//   OrderDetails Order[]
-// }
-
-// model Order {
-//   id          String      @id @default(uuid())
-//   user_id     String
-//   payment_id  String
-//   total       Float
-//   is_success  Boolean
-//   created_at  DateTime    @default(now())
-//   modified_at DateTime    @updatedAt
-//   payment     Payment     @relation(fields: [payment_id], references: [id])
-//   user        User        @relation(fields: [user_id], references: [id])
-//   OrderItem   OrderItem[]
-// }
-
-// model OrderItem {
-//   id         String  @id @default(uuid())
-//   order_id   String
-//   product_id String
-//   quantity   Int
-//   order      Order   @relation(fields: [order_id], references: [id])
-//   product    Product @relation(fields: [product_id], references: [id])
-// }
+model Order {
+  id         String @id @default(uuid())
+  user_id    String
+  user       User   @relation(fields: [user_id], references: [id])
+  orderItems Json[]
+}
 
 enum ROLE {
   ADMIN

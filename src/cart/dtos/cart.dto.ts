@@ -71,7 +71,7 @@ export class ResponseCartItemDto {
 export class SingleProductCheckoutDto {
   @IsString()
   @IsNotEmpty()
-  id: string;
+  product_id: string;
 
   @IsInt()
   @IsNotEmpty()
@@ -83,4 +83,57 @@ export class ProductCheckoutDto {
   @ValidateNested({ each: true })
   @Type(() => SingleProductCheckoutDto)
   products: SingleProductCheckoutDto[];
+}
+
+export class PaidCartItemDto {
+  @IsInt()
+  @IsNotEmpty()
+  quantity: number;
+
+  @Exclude()
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    image_url: string;
+    categories: {
+      id: number;
+      label: string;
+    }[];
+    inventory: {
+      price: number;
+    };
+  };
+  @Expose()
+  get product_id() {
+    return this.product.id;
+  }
+  @Expose()
+  get name() {
+    return this.product.name;
+  }
+
+  @Expose()
+  get description() {
+    return this.product.description;
+  }
+
+  @Expose()
+  get image_url() {
+    return this.product.image_url;
+  }
+
+  @Expose()
+  get categories() {
+    return this.product.categories;
+  }
+
+  @Expose()
+  get pricePerUnit() {
+    return this.product.inventory.price;
+  }
+
+  constructor(partial: Partial<ResponseCartItemDto>) {
+    return Object.assign(this, partial);
+  }
 }

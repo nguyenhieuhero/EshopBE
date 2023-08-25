@@ -1,7 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { CartItemParams } from 'src/interface/interfaces';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ResponseCartItemDto } from './dtos/cart.dto';
+import { PaidCartItemDto, ResponseCartItemDto } from './dtos/cart.dto';
 import { StripeService } from 'src/stripe/stripe.service';
 
 const basicCartItemField = {
@@ -30,7 +29,7 @@ const cartItemWithProductInfor = {
 };
 
 interface ProductCheckoutParams {
-  id: string;
+  product_id: string;
   quantity: number;
 }
 
@@ -131,7 +130,7 @@ export class CartService {
         this.prismaService.cartItem
           .findUniqueOrThrow({
             where: {
-              user_id_product_id: { user_id, product_id: product.id },
+              user_id_product_id: { user_id, product_id: product.product_id },
               quantity: product.quantity,
             },
             select: cartItemWithProductInfor,
@@ -147,13 +146,11 @@ export class CartService {
           }),
       ),
     );
-    const _stripeUrl = await this.stripeService.createcheckoutSession(
-      validItems.map((item) => new ResponseCartItemDto(item)),
+    const _stripeUrl = this.stripeService.createcheckoutSession(
+      validItems.map((item) => new PaidCartItemDto(item)),
+      user_id,
     );
-    return { _stripeUrl };
-    // return { data: validItems.map((item) => new ResponseCartItemDto(item)) };
-    // return productCheckout;
-    // return await this.stripeService.createcheckoutSession();
+    return _stripeUrl;
   }
   async checkoutSession(id: string) {
     const paidItems = await this.stripeService.checkoutSession(id);

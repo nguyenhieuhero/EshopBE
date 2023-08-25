@@ -90,7 +90,7 @@ export class ProductController {
           }
         : undefined;
     const productFilter = {
-      ...(price && { price }),
+      ...(price && { inventory: { price: price } }),
       ...(_name && { name: { contains: _name } }),
     };
     const _take = limit ? parseInt(limit) : 9;

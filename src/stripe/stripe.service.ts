@@ -1,11 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { CheckoutProdcutParams } from 'src/interface/interfaces';
+import { CheckoutProductParams } from 'src/interface/interfaces';
 import { Stripe } from 'stripe';
 
 interface StripeProductMetadata extends Stripe.Product {
   metadata: {
-    id: string;
+    name: string;
+    description: string;
+    image_url: string;
+    product_id: string;
+    pricePerUnit: string;
   };
+}
+interface StripeMetadata extends Stripe.Metadata {
+  user_id: string;
 }
 
 @Injectable()
@@ -24,16 +31,24 @@ export class StripeService {
         expand: ['line_items.data.price.product'],
       },
     );
-    return session.line_items.data.map((product) => {
+    const paidProduct = session.line_items.data.map((product) => {
       const _metadata = product.price.product as StripeProductMetadata;
       return {
         quantity: product.quantity,
-        product_id: _metadata.metadata.id,
+        product_id: _metadata.metadata.product_id,
+        name: _metadata.metadata.name,
+        description: _metadata.metadata.description,
+        image_url: _metadata.metadata.image_url,
+        pricePerUnit: _metadata.metadata.pricePerUnit,
       };
     });
+    const metadata = session.metadata as StripeMetadata;
+    return { user_id: metadata.user_id, paidProduct };
   }
-
-  async createcheckoutSession(products: CheckoutProdcutParams[]) {
+  async createcheckoutSession(
+    products: CheckoutProductParams[],
+    user_id: string,
+  ) {
     const session = await this.stripeService.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -45,13 +60,20 @@ export class StripeService {
               name: item.name,
               description: item.description,
               images: [item.image_url],
-              metadata: { id: item.id },
+              metadata: {
+                product_id: item.product_id,
+                name: item.name,
+                description: item.description,
+                image_url: item.image_url,
+                pricePerUnit: item.pricePerUnit,
+              },
             },
             unit_amount: item.pricePerUnit,
           },
           quantity: item.quantity,
         };
       }),
+      metadata: { user_id },
       success_url: `${process.env.FE_URL}/success?id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FE_URL}/session/failure`,
     });

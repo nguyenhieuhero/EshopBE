@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
@@ -19,6 +20,7 @@ import { VerifiedUser } from 'src/user/decorator/user.decorator';
 import { BasicUserInforDto } from 'src/user/dtos/user.dto';
 import { ProductIdParamGuard } from 'src/product/guard/product.guard';
 import { ProductCheckoutDto, SingleProductCheckoutDto } from './dtos/cart.dto';
+import { Response } from 'express';
 
 @Controller('cart')
 export class CartController {
@@ -88,14 +90,18 @@ export class CartController {
   @Roles('ADMIN', 'BASIC')
   @UseGuards(AuthGuard)
   @Post('/create-checkout')
-  createCheckout(
+  async createCheckout(
     @Body() productCheckout: ProductCheckoutDto,
     @VerifiedUser() { id }: BasicUserInforDto,
+    @Res() res: Response,
   ) {
     // return productCheckout;
-    return this.cartService.createcheckout(productCheckout.products, id);
+    const _url = await this.cartService.createcheckout(
+      productCheckout.products,
+      id,
+    );
+    res.redirect(_url);
   }
-
   @Post('/checkout-session')
   checkoutSession(@Query('id') id: string) {
     return this.cartService.checkoutSession(id);

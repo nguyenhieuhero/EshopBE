@@ -91,9 +91,9 @@ export interface UpdateInventoryParams {
   quantity?: number;
 }
 
-export interface CheckoutProdcutParams {
+export interface CheckoutProductParams {
   quantity: number;
-  id: string;
+  product_id: string;
   name: string;
   description: string;
   image_url: string;

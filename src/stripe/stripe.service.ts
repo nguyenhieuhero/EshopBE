@@ -83,7 +83,7 @@ export class StripeService {
       }),
       metadata: { user_id, order_id },
       success_url: `${process.env.FE_URL}/success?id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FE_URL}/session/failure`,
+      cancel_url: `${process.env.FE_URL}/failure`,
     });
     return session.url;
   }

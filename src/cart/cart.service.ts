@@ -124,6 +124,7 @@ export class CartService {
   async createcheckout(
     productCheckout: ProductCheckoutParams[],
     user_id: string,
+    user_email: string,
   ) {
     let validItems = await Promise.all(
       productCheckout.map((product) =>
@@ -132,6 +133,11 @@ export class CartService {
             where: {
               user_id_product_id: { user_id, product_id: product.product_id },
               quantity: product.quantity,
+              product: {
+                inventory: {
+                  quantity: { gte: product.quantity },
+                },
+              },
             },
             select: cartItemWithProductInfor,
           })
@@ -149,11 +155,22 @@ export class CartService {
     const _stripeUrl = await this.stripeService.createcheckoutSession(
       validItems.map((item) => new PaidCartItemDto(item)),
       user_id,
+      user_email,
     );
     return { _stripeUrl };
   }
   async checkoutSession(id: string) {
-    const paidItems = await this.stripeService.checkoutSession(id);
-    return paidItems;
+    const paidSession = await this.stripeService.checkoutSession(id);
+    // paidItems.paidProduct.forEach((_product) =>
+    //   this.deleteFromCart(paidItems.user_id, _product.product_id),
+    // );
+    const order = await this.prismaService.order.create({
+      data: {
+        user_id: paidSession.user_id,
+        orderItems: paidSession.paidProduct,
+      },
+    });
+    console.log(order);
+    return { success: true };
   }
 }

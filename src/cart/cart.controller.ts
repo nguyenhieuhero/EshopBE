@@ -90,9 +90,9 @@ export class CartController {
   @Post('/create-checkout')
   createCheckout(
     @Body() productCheckout: ProductCheckoutDto,
-    @VerifiedUser() { id }: BasicUserInforDto,
+    @VerifiedUser() { id, email }: BasicUserInforDto,
   ) {
-    return this.cartService.createcheckout(productCheckout.products, id);
+    return this.cartService.createcheckout(productCheckout.products, id, email);
   }
   @Post('/checkout-session')
   checkoutSession(@Query('id') id: string) {

@@ -43,15 +43,18 @@ export class StripeService {
       };
     });
     const metadata = session.metadata as StripeMetadata;
+    // await this.stripeService.checkout.sessions.expire(sessionId);
     return { user_id: metadata.user_id, paidProduct };
   }
   async createcheckoutSession(
     products: CheckoutProductParams[],
     user_id: string,
+    user_email: string,
   ) {
     const session = await this.stripeService.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
+      customer_email: user_email,
       line_items: products.map((item) => {
         return {
           price_data: {

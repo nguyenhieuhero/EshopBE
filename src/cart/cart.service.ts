@@ -190,9 +190,13 @@ export class CartService {
         orderItems: paidSession.paidProduct,
       },
     });
-    paidSession.paidProduct.forEach((_product) =>
+    paidSession.paidProduct.forEach(async (_product) => {
       this.deleteFromCart(paidSession.user_id, _product.product_id),
-    );
+        await this.prismaService.inventory.update({
+          where: { product_id: _product.product_id },
+          data: { quantity: { decrement: _product.quantity } },
+        });
+    });
     return { success: true };
   }
 }

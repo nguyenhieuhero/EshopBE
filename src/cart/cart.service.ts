@@ -122,16 +122,41 @@ export class CartService {
       data: cartItems.map((cartItem) => new ResponseCartItemDto(cartItem)),
     };
   }
-  async createcheckout(productCheckout: ProductCheckoutParams[]) {
-    let arrayList = [];
-    productCheckout.forEach((e) => {
-      arrayList.push(e);
-    });
-    return arrayList;
+  async createcheckout(
+    productCheckout: ProductCheckoutParams[],
+    user_id: string,
+  ) {
+    let validItems = await Promise.all(
+      productCheckout.map((product) =>
+        this.prismaService.cartItem
+          .findUniqueOrThrow({
+            where: {
+              user_id_product_id: { user_id, product_id: product.id },
+              quantity: product.quantity,
+            },
+            select: cartItemWithProductInfor,
+          })
+          .catch((error) => {
+            throw new HttpException(
+              {
+                success: false,
+                metadata: { message: 'Invalid Cart Item' },
+              },
+              400,
+            );
+          }),
+      ),
+    );
+    const _stripeUrl = await this.stripeService.createcheckoutSession(
+      validItems.map((item) => new ResponseCartItemDto(item)),
+    );
+    return { _stripeUrl };
+    // return { data: validItems.map((item) => new ResponseCartItemDto(item)) };
     // return productCheckout;
     // return await this.stripeService.createcheckoutSession();
   }
   async checkoutSession(id: string) {
-    return await this.stripeService.checkoutSession(id);
+    const paidItems = await this.stripeService.checkoutSession(id);
+    return paidItems;
   }
 }

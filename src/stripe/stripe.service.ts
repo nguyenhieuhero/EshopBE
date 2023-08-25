@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { CheckoutProdcutParams } from 'src/interface/interfaces';
 import { Stripe } from 'stripe';
 
-interface ProductMetadata {
+interface StripeProductMetadata extends Stripe.Product {
   metadata: {
     id: string;
   };
@@ -23,32 +24,30 @@ export class StripeService {
         expand: ['line_items.data.price.product'],
       },
     );
-    console.log(
-      session.line_items.data.map((product) => {
-        const _metadata = product.price.product as unknown as ProductMetadata;
-        return { quantity: product.quantity, id: _metadata.metadata.id };
-      }),
-    );
+    return session.line_items.data.map((product) => {
+      const _metadata = product.price.product as StripeProductMetadata;
+      return {
+        quantity: product.quantity,
+        product_id: _metadata.metadata.id,
+      };
+    });
   }
 
-  async createcheckoutSession() {
-    const Items = [
-      { id: 12, quantity: 1, name: 'hehe', price: 10000, description: 'hihe' },
-      { id: 23, quantity: 2, name: 'huhu', price: 50000, description: 'hihu' },
-    ];
+  async createcheckoutSession(products: CheckoutProdcutParams[]) {
     const session = await this.stripeService.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
-      line_items: Items.map((item) => {
+      line_items: products.map((item) => {
         return {
           price_data: {
             currency: 'vnd',
             product_data: {
               name: item.name,
               description: item.description,
+              images: [item.image_url],
               metadata: { id: item.id },
             },
-            unit_amount: item.price,
+            unit_amount: item.pricePerUnit,
           },
           quantity: item.quantity,
         };
@@ -56,6 +55,6 @@ export class StripeService {
       success_url: `${process.env.FE_URL}/success?id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FE_URL}/session/failure`,
     });
-    return session;
+    return session.url;
   }
 }

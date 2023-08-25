@@ -90,3 +90,12 @@ export interface UpdateInventoryParams {
   import_price?: number;
   quantity?: number;
 }
+
+export interface CheckoutProdcutParams {
+  quantity: number;
+  id: string;
+  name: string;
+  description: string;
+  image_url: string;
+  pricePerUnit: number;
+}

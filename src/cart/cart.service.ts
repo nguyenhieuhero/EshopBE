@@ -2,6 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PaidCartItemDto, ResponseCartItemDto } from './dtos/cart.dto';
 import { StripeService } from 'src/stripe/stripe.service';
+import { ORDER_STATUS } from '@prisma/client';
 
 const basicCartItemField = {
   product_id: true,
@@ -126,6 +127,14 @@ export class CartService {
     user_id: string,
     user_email: string,
   ) {
+    await this.prismaService.order.deleteMany({
+      where: { user_id, status: ORDER_STATUS.PENDING },
+    });
+    const _order = await this.prismaService.order.create({
+      data: {
+        user_id: user_id,
+      },
+    });
     let validItems = await Promise.all(
       productCheckout.map((product) =>
         this.prismaService.cartItem
@@ -155,22 +164,35 @@ export class CartService {
     const _stripeUrl = await this.stripeService.createcheckoutSession(
       validItems.map((item) => new PaidCartItemDto(item)),
       user_id,
+      _order.id,
       user_email,
     );
     return { _stripeUrl };
   }
   async checkoutSession(id: string) {
     const paidSession = await this.stripeService.checkoutSession(id);
-    // paidItems.paidProduct.forEach((_product) =>
-    //   this.deleteFromCart(paidItems.user_id, _product.product_id),
-    // );
-    const order = await this.prismaService.order.create({
+    const order = await this.prismaService.order.findUnique({
+      where: { id: paidSession.order_id, user_id: paidSession.user_id },
+    });
+    if (order.status == ORDER_STATUS.SUCCESS) {
+      throw new HttpException(
+        {
+          success: false,
+          metadata: { message: 'Order can only paid 1 time!' },
+        },
+        400,
+      );
+    }
+    await this.prismaService.order.update({
+      where: { id: paidSession.order_id, user_id: paidSession.user_id },
       data: {
-        user_id: paidSession.user_id,
+        status: ORDER_STATUS.SUCCESS,
         orderItems: paidSession.paidProduct,
       },
     });
-    console.log(order);
+    paidSession.paidProduct.forEach((_product) =>
+      this.deleteFromCart(paidSession.user_id, _product.product_id),
+    );
     return { success: true };
   }
 }

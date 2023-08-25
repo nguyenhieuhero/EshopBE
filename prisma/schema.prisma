@@ -74,13 +74,19 @@ model Inventory {
 }
 
 model Order {
-  id         String @id @default(uuid())
+  id         String       @id @default(uuid())
   user_id    String
-  user       User   @relation(fields: [user_id], references: [id])
+  user       User         @relation(fields: [user_id], references: [id])
+  status     ORDER_STATUS @default(PENDING)
   orderItems Json[]
 }
 
 enum ROLE {
   ADMIN
   BASIC
+}
+
+enum ORDER_STATUS {
+  PENDING
+  SUCCESS
 }

@@ -13,6 +13,7 @@ interface StripeProductMetadata extends Stripe.Product {
 }
 interface StripeMetadata extends Stripe.Metadata {
   user_id: string;
+  order_id: string;
 }
 
 @Injectable()
@@ -39,16 +40,20 @@ export class StripeService {
         name: _metadata.metadata.name,
         description: _metadata.metadata.description,
         image_url: _metadata.metadata.image_url,
-        pricePerUnit: _metadata.metadata.pricePerUnit,
+        pricePerUnit: parseFloat(_metadata.metadata.pricePerUnit),
       };
     });
     const metadata = session.metadata as StripeMetadata;
-    // await this.stripeService.checkout.sessions.expire(sessionId);
-    return { user_id: metadata.user_id, paidProduct };
+    return {
+      user_id: metadata.user_id,
+      order_id: metadata.order_id,
+      paidProduct,
+    };
   }
   async createcheckoutSession(
     products: CheckoutProductParams[],
     user_id: string,
+    order_id: string,
     user_email: string,
   ) {
     const session = await this.stripeService.checkout.sessions.create({
@@ -76,7 +81,7 @@ export class StripeService {
           quantity: item.quantity,
         };
       }),
-      metadata: { user_id },
+      metadata: { user_id, order_id },
       success_url: `${process.env.FE_URL}/success?id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FE_URL}/session/failure`,
     });

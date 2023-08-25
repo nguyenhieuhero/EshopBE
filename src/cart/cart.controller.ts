@@ -94,8 +94,10 @@ export class CartController {
   ) {
     return this.cartService.createcheckout(productCheckout.products, id, email);
   }
+  @Roles('ADMIN', 'BASIC')
+  @UseGuards(AuthGuard)
   @Post('/checkout-session')
-  checkoutSession(@Query('id') id: string) {
-    return this.cartService.checkoutSession(id);
+  checkoutSession(@Query('id') sessionid: string) {
+    return this.cartService.checkoutSession(sessionid);
   }
 }

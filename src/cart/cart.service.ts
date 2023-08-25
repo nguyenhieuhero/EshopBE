@@ -28,6 +28,12 @@ const cartItemWithProductInfor = {
     },
   },
 };
+
+interface ProductCheckoutParams {
+  id: string;
+  quantity: number;
+}
+
 @Injectable()
 export class CartService {
   constructor(
@@ -116,8 +122,14 @@ export class CartService {
       data: cartItems.map((cartItem) => new ResponseCartItemDto(cartItem)),
     };
   }
-  async createcheckout() {
-    return await this.stripeService.createcheckoutSession();
+  async createcheckout(productCheckout: ProductCheckoutParams[]) {
+    let arrayList = [];
+    productCheckout.forEach((e) => {
+      arrayList.push(e);
+    });
+    return arrayList;
+    // return productCheckout;
+    // return await this.stripeService.createcheckoutSession();
   }
   async checkoutSession(id: string) {
     return await this.stripeService.checkoutSession(id);

@@ -18,7 +18,7 @@ import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { VerifiedUser } from 'src/user/decorator/user.decorator';
 import { BasicUserInforDto } from 'src/user/dtos/user.dto';
 import { ProductIdParamGuard } from 'src/product/guard/product.guard';
-import { ProductCheckoutDto } from './dtos/cart.dto';
+import { ProductCheckoutDto, SingleProductCheckoutDto } from './dtos/cart.dto';
 
 @Controller('cart')
 export class CartController {
@@ -92,8 +92,8 @@ export class CartController {
     @Body() productCheckout: ProductCheckoutDto,
     @VerifiedUser() user: BasicUserInforDto,
   ) {
-    return productCheckout;
-    // return this.cartService.createcheckout();
+    // return productCheckout;
+    return this.cartService.createcheckout(productCheckout.products);
   }
 
   @Post('/checkout-session')

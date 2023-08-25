@@ -68,7 +68,7 @@ export class ResponseCartItemDto {
   }
 }
 
-class SingleProductCheckoutDto {
+export class SingleProductCheckoutDto {
   @IsString()
   @IsNotEmpty()
   id: string;
